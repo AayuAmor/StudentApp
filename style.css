@@ -1,0 +1,13 @@
+.strike_none {
+  text-decoration: none;
+}
+
+.strike_done {
+  text-decoration: line-through;
+  color: #5b7a9d;
+}
+
+.green {
+  background-color: #36d344 !important;
+  border-color: #36d344 !important;
+}
