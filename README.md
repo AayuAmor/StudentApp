@@ -22,7 +22,7 @@ Our mission is to empower students with an all-in-one solution for academic succ
 
 ## Features
 - To-Do List
-- Pomodoro Timer *(coming soon)*
+- Pomodoro Timer
 - Timetable Planner *(coming soon)*
 - Academic Progress Tracker *(coming soon)*
 - Event Calendar *(coming soon)*
@@ -31,7 +31,7 @@ Our mission is to empower students with an all-in-one solution for academic succ
 
 ## Roadmap 🗺️
 - [x] To-Do List
-- [ ] Pomodoro Timer
+- [x] Pomodoro Timer
 - [ ] Timetable Planner
 - [ ] Academic Progress Tracker
 - [ ] Event Calendar
