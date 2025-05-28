@@ -42,4 +42,4 @@ Our mission is to empower students with an all-in-one solution for academic succ
 - [ ] Tiny Games for Study Breaks
 - [ ] Notes Management
 
-> *And many more features on the way…*
+>### *And many more features on the way…*
