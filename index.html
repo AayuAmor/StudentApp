@@ -64,6 +64,21 @@
       </div>
     </div>
   </div>
+  <!-- Edit Task Modal -->
+<div id="edit-task-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-30 flex justify-center items-center">
+  <div class="bg-white p-6 rounded shadow-md w-80">
+    <h2 class="text-lg font-semibold mb-4">Edit Task</h2>
+    <input id="edit-title" class="w-full border px-2 py-1 rounded mb-2" placeholder="Task title" />
+    <input id="edit-date" type="date" class="w-full border px-2 py-1 rounded mb-2" />
+    <input id="edit-time" type="time" class="w-full border px-2 py-1 rounded mb-4" />
+    <div class="flex justify-between">
+      <button id="update-task-btn" class="bg-blue-500 text-white px-3 py-1 rounded">Update</button>
+      <button id="delete-task-btn" class="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+      <button id="cancel-edit-btn" class="bg-gray-400 text-white px-3 py-1 rounded">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
 <script src="script.js"></script>
 </body>

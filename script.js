@@ -10,14 +10,23 @@ setInterval(function () {
 }, 500);
 
 function checked(id) {
-  var checked_green = document.getElementById("check" + id);
-  checked_green.classList.toggle('green');
+  const strike = document.getElementById(`strike${id}`);
+  const check = document.getElementById(`check${id}`);
 
-  var strike_unstrike = document.getElementById("strike" + id);
-  strike_unstrike.classList.toggle('strike_done');
+  const isDone = strike.classList.contains("strike_none");
+
+  strike.classList.toggle("strike_none");
+  strike.classList.toggle("line-through");
+  check.classList.toggle("bg-[#36d344]");
+
+  // Optionally update task status in tasks object
+  if (tasks[id]) {
+    tasks[id].completed = !isDone;
+  }
 }
 
-// Dynamically create 7 days starting from Sunday
+let tasks = {}; // Key: taskId, Value: { title, time, date }
+
 window.addEventListener('DOMContentLoaded', () => {
   const calendarRow = document.getElementById('calendar-row');
   const today = new Date();
@@ -133,7 +142,6 @@ function populateDayDropdown() {
   dropdown.appendChild(futureOption);
 }
 
-// Handle selecting a future date via prompt
 document.getElementById("task-day").addEventListener("change", function () {
   if (this.value === "future") {
     const futureDate = prompt("Enter future date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
@@ -168,14 +176,12 @@ function addTask(title, time24) {
   const taskId = Date.now();
   const selectedDate = document.getElementById("task-day").value;
 
-  // Convert 24hr to 12hr format
   const [hour, minute] = time24.split(":");
   let hour12 = parseInt(hour, 10);
   const ampm = hour12 >= 12 ? "PM" : "AM";
   hour12 = hour12 % 12 || 12;
   const time12 = `${hour12}:${minute} ${ampm}`;
 
-  // Format date for display
   const dateObj = new Date(selectedDate);
   const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
   const day = dateObj.getDate();
@@ -185,29 +191,137 @@ function addTask(title, time24) {
   const taskHTML = `
     <li class="mt-4" id="${taskId}">
       <div class="flex gap-2">
-        <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex justify-start items-center px-3">
-          <span id="check${taskId}" class="w-7 h-7 bg-white rounded-full border border-white transition-all cursor-pointer hover:border-[#36d344] flex justify-center items-center" onclick="checked(${taskId})"><i class="text-white fa fa-check"></i></span>
-          <strike id="strike${taskId}" class="strike_none text-sm ml-4 text-[#5b7a9d] font-semibold">${title}</strike>
+        <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
+          <div class="flex items-center">
+            <span 
+              id="check${taskId}" 
+              class="w-7 h-7 bg-white rounded-full border border-white cursor-pointer hover:border-[#36d344] flex justify-center items-center" 
+              onclick="checked(${taskId})"
+            >
+              <i class="text-white fa fa-check"></i>
+            </span>
+            <strike 
+              id="strike${taskId}" 
+              class="strike_none text-sm ml-4 text-[#5b7a9d] font-semibold"
+            >
+              ${title}
+            </strike>
+          </div>
+          <button onclick="editTask(${taskId})" class="text-xs text-blue-600 hover:underline ml-2">Edit</button>
         </div>
-        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center text-xs text-[#5b7a9d] font-semibold items-center ">${formattedDate}</span>
-        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center text-xs text-[#5b7a9d] font-semibold items-center ">${time12}</span>
+
+        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+          ${formattedDate}
+        </span>
+
+        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+          ${time12}
+        </span>
       </div>
     </li>
   `;
+
   document.getElementById("task-container").insertAdjacentHTML("beforeend", taskHTML);
+
+  // Save task to global tasks object
+  tasks[taskId] = {
+    title,
+    time: time12,
+    date: formattedDate
+  };
 }
 
-
-function checked(id) {
-  const strike = document.getElementById(`strike${id}`);
-  const check = document.getElementById(`check${id}`);
-  if (strike.classList.contains("strike_none")) {
-    strike.classList.remove("strike_none");
-    strike.classList.add("line-through");
-    check.classList.add("bg-[#36d344]");
-  } else {
-    strike.classList.add("strike_none");
-    strike.classList.remove("line-through");
-    check.classList.remove("bg-[#36d344]");
+// Edit task title
+function editTask(id) {
+  const currentTitle = tasks[id]?.title || document.getElementById(`strike${id}`).textContent;
+  const newTitle = prompt("Edit task title:", currentTitle);
+  if (newTitle && newTitle.trim()) {
+    document.getElementById(`strike${id}`).textContent = newTitle.trim();
+    if (tasks[id]) tasks[id].title = newTitle.trim();
   }
 }
+let currentEditId = null;
+function editTask(id) {
+  currentEditId = id;
+
+  const task = tasks[id];
+  if (!task) return;
+
+  document.getElementById("edit-title").value = task.title;
+
+  const [weekday, day, month] = task.date.split(" ");
+  const months = {
+    Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+    Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+  };
+  const year = new Date().getFullYear();
+  const dateValue = `${year}-${months[month]}-${day.padStart(2, "0")}`;
+  document.getElementById("edit-date").value = dateValue;
+
+  const [timeStr, ampm] = task.time.split(" ");
+  let [hour, minute] = timeStr.split(":").map(Number);
+  if (ampm === "PM" && hour !== 12) hour += 12;
+  if (ampm === "AM" && hour === 12) hour = 0;
+  document.getElementById("edit-time").value = `${String(hour).padStart(2, "0")}:${minute}`;
+
+  document.getElementById("edit-task-modal").classList.remove("hidden");
+}
+document.getElementById("update-task-btn").addEventListener("click", () => {
+  if (!currentEditId || !tasks[currentEditId]) return;
+
+  const newTitle = document.getElementById("edit-title").value.trim();
+  const newDate = document.getElementById("edit-date").value;
+  const newTime = document.getElementById("edit-time").value;
+
+  if (!newTitle || !newDate || !newTime) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  // Convert time to 12-hour format
+  let [hour, minute] = newTime.split(":").map(Number);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  const time12 = `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+
+  const d = new Date(newDate);
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-US", { month: "short" });
+  const formattedDate = `${weekday} ${day} ${month}`;
+
+  // Update DOM
+  const strike = document.getElementById(`strike${currentEditId}`);
+  strike.textContent = newTitle;
+
+  const parent = document.getElementById(currentEditId);
+  const spans = parent.querySelectorAll("span");
+  spans[1].textContent = formattedDate;
+  spans[2].textContent = time12;
+
+  // Update data
+  tasks[currentEditId] = {
+    ...tasks[currentEditId],
+    title: newTitle,
+    date: formattedDate,
+    time: time12
+  };
+
+  document.getElementById("edit-task-modal").classList.add("hidden");
+  currentEditId = null;
+});
+document.getElementById("delete-task-btn").addEventListener("click", () => {
+  if (!currentEditId) return;
+
+  const taskEl = document.getElementById(currentEditId);
+  if (taskEl) taskEl.remove();
+
+  delete tasks[currentEditId];
+
+  document.getElementById("edit-task-modal").classList.add("hidden");
+  currentEditId = null;
+});
+document.getElementById("cancel-edit-btn").addEventListener("click", () => {
+  document.getElementById("edit-task-modal").classList.add("hidden");
+  currentEditId = null;
+});
