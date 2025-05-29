@@ -19,13 +19,32 @@ function checked(id) {
   strike.classList.toggle("line-through");
   check.classList.toggle("bg-[#36d344]");
 
-  // Optionally update task status in tasks object
   if (tasks[id]) {
     tasks[id].completed = !isDone;
   }
 }
 
-let tasks = {}; // Key: taskId, Value: { title, time, date }
+let tasks = {};
+let draggedItem = null;
+
+function drag(event) {
+  draggedItem = event.target;
+  event.target.classList.add("dragging");
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+  
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   const calendarRow = document.getElementById('calendar-row');
@@ -87,6 +106,23 @@ window.addEventListener('DOMContentLoaded', () => {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  // Add drag-and-drop event listeners
+  document.getElementById("task-container").addEventListener("dragover", function(e) {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(this, e.clientY);
+    const draggable = draggedItem;
+    
+    if (afterElement == null) {
+      this.appendChild(draggable);
+    } else {
+      this.insertBefore(draggable, afterElement);
+    }
+  });
+
+  document.getElementById("task-container").addEventListener("dragend", function(e) {
+    e.target.classList.remove("dragging");
+  });
 });
 
 document.getElementById("add-task-btn").addEventListener("click", () => {
@@ -105,12 +141,27 @@ document.getElementById("save-task").addEventListener("click", () => {
   const date = document.getElementById("task-day").value;
   const time = document.getElementById("task-time").value;
 
-  if (title && date && time) {
-    addTask(title, time);
-    document.getElementById("task-modal").classList.add("hidden");
-  } else {
+  if (!title || !date || !time) {
     alert("Please fill all fields.");
+    return;
   }
+
+  if (date !== "future") {
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("Cannot set a task in the past.");
+      return;
+    }
+  }
+
+  addTask(title, time);
+  document.getElementById("task-modal").classList.add("hidden");
+  document.getElementById("task-title").value = "";
+  document.getElementById("task-time").value = "";
 });
 
 function populateDayDropdown() {
@@ -135,7 +186,6 @@ function populateDayDropdown() {
     }
   });
 
-  // Add the future date selector
   const futureOption = document.createElement('option');
   futureOption.value = "future";
   futureOption.textContent = "Select Future Date...";
@@ -189,7 +239,7 @@ function addTask(title, time24) {
   const formattedDate = `${weekday} ${day} ${month}`;
 
   const taskHTML = `
-    <li class="mt-4" id="${taskId}">
+    <li class="mt-4" id="${taskId}" draggable="true" ondragstart="drag(event)">
       <div class="flex gap-2">
         <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
           <div class="flex items-center">
@@ -223,7 +273,6 @@ function addTask(title, time24) {
 
   document.getElementById("task-container").insertAdjacentHTML("beforeend", taskHTML);
 
-  // Save task to global tasks object
   tasks[taskId] = {
     title,
     time: time12,
@@ -231,15 +280,6 @@ function addTask(title, time24) {
   };
 }
 
-// Edit task title
-function editTask(id) {
-  const currentTitle = tasks[id]?.title || document.getElementById(`strike${id}`).textContent;
-  const newTitle = prompt("Edit task title:", currentTitle);
-  if (newTitle && newTitle.trim()) {
-    document.getElementById(`strike${id}`).textContent = newTitle.trim();
-    if (tasks[id]) tasks[id].title = newTitle.trim();
-  }
-}
 let currentEditId = null;
 function editTask(id) {
   currentEditId = id;
@@ -266,6 +306,7 @@ function editTask(id) {
 
   document.getElementById("edit-task-modal").classList.remove("hidden");
 }
+
 document.getElementById("update-task-btn").addEventListener("click", () => {
   if (!currentEditId || !tasks[currentEditId]) return;
 
@@ -278,7 +319,6 @@ document.getElementById("update-task-btn").addEventListener("click", () => {
     return;
   }
 
-  // Convert time to 12-hour format
   let [hour, minute] = newTime.split(":").map(Number);
   const ampm = hour >= 12 ? "PM" : "AM";
   hour = hour % 12 || 12;
@@ -290,7 +330,6 @@ document.getElementById("update-task-btn").addEventListener("click", () => {
   const month = d.toLocaleDateString("en-US", { month: "short" });
   const formattedDate = `${weekday} ${day} ${month}`;
 
-  // Update DOM
   const strike = document.getElementById(`strike${currentEditId}`);
   strike.textContent = newTitle;
 
@@ -299,7 +338,6 @@ document.getElementById("update-task-btn").addEventListener("click", () => {
   spans[1].textContent = formattedDate;
   spans[2].textContent = time12;
 
-  // Update data
   tasks[currentEditId] = {
     ...tasks[currentEditId],
     title: newTitle,
@@ -310,6 +348,7 @@ document.getElementById("update-task-btn").addEventListener("click", () => {
   document.getElementById("edit-task-modal").classList.add("hidden");
   currentEditId = null;
 });
+
 document.getElementById("delete-task-btn").addEventListener("click", () => {
   if (!currentEditId) return;
 
@@ -321,6 +360,7 @@ document.getElementById("delete-task-btn").addEventListener("click", () => {
   document.getElementById("edit-task-modal").classList.add("hidden");
   currentEditId = null;
 });
+
 document.getElementById("cancel-edit-btn").addEventListener("click", () => {
   document.getElementById("edit-task-modal").classList.add("hidden");
   currentEditId = null;
