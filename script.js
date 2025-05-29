@@ -164,21 +164,39 @@ document.getElementById("task-day").addEventListener("change", function () {
   }
 });
 
-function addTask(title, time) {
+function addTask(title, time24) {
   const taskId = Date.now();
+  const selectedDate = document.getElementById("task-day").value;
+
+  // Convert 24hr to 12hr format
+  const [hour, minute] = time24.split(":");
+  let hour12 = parseInt(hour, 10);
+  const ampm = hour12 >= 12 ? "PM" : "AM";
+  hour12 = hour12 % 12 || 12;
+  const time12 = `${hour12}:${minute} ${ampm}`;
+
+  // Format date for display
+  const dateObj = new Date(selectedDate);
+  const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleDateString("en-US", { month: "short" });
+  const formattedDate = `${weekday} ${day} ${month}`;
+
   const taskHTML = `
     <li class="mt-4" id="${taskId}">
       <div class="flex gap-2">
-        <div class="w-9/12 h-12 bg-[#e0ebff] rounded-[7px] flex justify-start items-center px-3">
+        <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex justify-start items-center px-3">
           <span id="check${taskId}" class="w-7 h-7 bg-white rounded-full border border-white transition-all cursor-pointer hover:border-[#36d344] flex justify-center items-center" onclick="checked(${taskId})"><i class="text-white fa fa-check"></i></span>
           <strike id="strike${taskId}" class="strike_none text-sm ml-4 text-[#5b7a9d] font-semibold">${title}</strike>
         </div>
-        <span class="w-1/4 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center text-sm text-[#5b7a9d] font-semibold items-center ">${time}</span>
+        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center text-xs text-[#5b7a9d] font-semibold items-center ">${formattedDate}</span>
+        <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center text-xs text-[#5b7a9d] font-semibold items-center ">${time12}</span>
       </div>
     </li>
   `;
   document.getElementById("task-container").insertAdjacentHTML("beforeend", taskHTML);
 }
+
 
 function checked(id) {
   const strike = document.getElementById(`strike${id}`);
