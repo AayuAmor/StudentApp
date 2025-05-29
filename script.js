@@ -28,13 +28,21 @@ window.addEventListener('DOMContentLoaded', () => {
     const calendarRow = document.getElementById('calendar-row');
     const today = new Date();
     const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
+    
+    // Find the current day of week (0-6 where 0 is Sunday)
+    const currentDayOfWeek = today.getDay();
+    
+    // Calculate the date for Sunday of this week
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - currentDayOfWeek);
+    
+    // Create 7 days starting from Sunday
     for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
+        const date = new Date(sunday);
+        date.setDate(sunday.getDate() + i);
 
-        const dayNumber = date.getDate(); // 17
-        const dayName = weekdayNames[date.getDay()]; // Fri
+        const dayNumber = date.getDate();
+        const dayName = weekdayNames[i]; // Use the index since we're starting from Sunday
 
         // Create a flex column for each day
         const dayColumn = document.createElement('div');
@@ -51,8 +59,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // Check if it's today
         if (date.toDateString() === today.toDateString()) {
-            dayText.classList.add('text-black'); // You can keep or remove this
-            dateCircle.classList.add('bg-gray-200', 'text-black'); // Light gray highlight
+            dayText.classList.add('text-black');
+            dateCircle.classList.add('bg-blue-200', 'text-black'); // Changed to blue highlight
         } else {
             dayText.classList.add('text-[#5b7a9d]');
             dateCircle.classList.add(
