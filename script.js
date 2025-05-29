@@ -1,21 +1,14 @@
-var setdate=document.querySelector(".set_date");
-var settime=document.querySelector(".set_time");
+var setdate = document.querySelector(".set_date");
+var settime = document.querySelector(".set_time");
 
-var date=new Date().toDateString();
-setdate.innerHTML=date;
+var date = new Date().toDateString();
+setdate.innerHTML = date;
 
+setInterval(function () {
+  var time = new Date().toLocaleTimeString();
+  settime.innerHTML = time;
+}, 500);
 
-setInterval(function(){
-    var time=new Date().toLocaleTimeString();
-    settime.innerHTML=time;
-},500);  
-
-// function checked(id){
-//     var checked_green=document.getElementById("check"+id);
-//     checked_green.classList.toggle('green');
-//     var strike_unstrike=document.getElementById("strike"+id);
-//     strike_unstrike.classList.toggle('strike_none');
-// }
 function checked(id) {
   var checked_green = document.getElementById("check" + id);
   checked_green.classList.toggle('green');
@@ -23,76 +16,73 @@ function checked(id) {
   var strike_unstrike = document.getElementById("strike" + id);
   strike_unstrike.classList.toggle('strike_done');
 }
-// Dynamically create 7 days starting from today
+
+// Dynamically create 7 days starting from Sunday
 window.addEventListener('DOMContentLoaded', () => {
-    const calendarRow = document.getElementById('calendar-row');
-    const today = new Date();
-    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    // Find the current day of week (0-6 where 0 is Sunday)
-    const currentDayOfWeek = today.getDay();
-    
-    // Calculate the date for Sunday of this week
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() - currentDayOfWeek);
-    
-    // Create 7 days starting from Sunday
-    for (let i = 0; i < 7; i++) {
-        const date = new Date(sunday);
-        date.setDate(sunday.getDate() + i);
+  const calendarRow = document.getElementById('calendar-row');
+  const today = new Date();
+  const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-        const dayNumber = date.getDate();
-        const dayName = weekdayNames[i]; // Use the index since we're starting from Sunday
+  const currentDayOfWeek = today.getDay();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - currentDayOfWeek);
 
-        // Create a flex column for each day
-        const dayColumn = document.createElement('div');
-        dayColumn.className = 'flex flex-col items-center space-y-1';
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(sunday);
+    date.setDate(sunday.getDate() + i);
 
-        const dayText = document.createElement('span');
-        dayText.className = 'text-sm font-semibold';
+    const dateString = date.toISOString().split('T')[0];
+    const dayNumber = date.getDate();
+    const dayName = weekdayNames[i];
 
-        const dateCircle = document.createElement('span');
-        dateCircle.className =
-            'h-7 w-7 rounded-full cursor-pointer transition-all flex justify-center items-center text-sm font-semibold';
+    const dayColumn = document.createElement('div');
+    dayColumn.className = 'flex flex-col items-center space-y-1';
+    dayColumn.dataset.date = dateString;
 
-        dateCircle.innerHTML = `<p>${dayNumber}</p>`;
+    const dayText = document.createElement('span');
+    dayText.className = 'text-sm font-semibold';
 
-        // Check if it's today
-        if (date.toDateString() === today.toDateString()) {
-            dayText.classList.add('text-black');
-            dateCircle.classList.add('bg-blue-200', 'text-black'); // Changed to blue highlight
-        } else {
-            dayText.classList.add('text-[#5b7a9d]');
-            dateCircle.classList.add(
-                'bg-white',
-                'text-black',
-                'hover:bg-[#063c76]',
-                'hover:text-white'
-            );
-        }
+    const dateCircle = document.createElement('span');
+    dateCircle.className = 'h-7 w-7 rounded-full cursor-pointer transition-all flex justify-center items-center text-sm font-semibold';
+    dateCircle.innerHTML = `<p>${dayNumber}</p>`;
 
-        dayText.textContent = dayName;
-        dayColumn.appendChild(dayText);
-        dayColumn.appendChild(dateCircle);
-        calendarRow.appendChild(dayColumn);
+    if (date.toDateString() === today.toDateString()) {
+      dayText.classList.add('text-black');
+      dateCircle.classList.add('bg-blue-200', 'text-black');
+    } else if (date < today) {
+      dayText.classList.add('text-gray-400');
+      dateCircle.classList.add('bg-gray-100', 'text-gray-500');
+    } else {
+      dayText.classList.add('text-[#5b7a9d]');
+      dateCircle.classList.add(
+        'bg-white',
+        'text-black',
+        'hover:bg-[#063c76]',
+        'hover:text-white'
+      );
     }
 
-    // Set header date and time
-    document.querySelector('.set_date').textContent = today.toLocaleDateString('en-US', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'
-    });
+    dayText.textContent = dayName;
+    dayColumn.appendChild(dayText);
+    dayColumn.appendChild(dateCircle);
+    calendarRow.appendChild(dayColumn);
+  }
 
-    document.querySelector('.set_time').textContent = today.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+  document.querySelector('.set_date').textContent = today.toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
+
+  document.querySelector('.set_time').textContent = today.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 });
 
 document.getElementById("add-task-btn").addEventListener("click", () => {
   document.getElementById("task-modal").classList.remove("hidden");
-  populateDayDropdown(); // Populate the dropdown every time
+  populateDayDropdown();
 });
 
 document.getElementById("cancel-task").addEventListener("click", () => {
@@ -116,13 +106,63 @@ document.getElementById("save-task").addEventListener("click", () => {
 
 function populateDayDropdown() {
   const dropdown = document.getElementById("task-day");
-  const days = document.querySelectorAll("#calendar-row > div");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   dropdown.innerHTML = "";
+
+  const days = document.querySelectorAll("#calendar-row > div");
   days.forEach(day => {
-    const value = day.dataset.date || day.innerText;
-    dropdown.innerHTML += `<option value="${value}">${day.innerText}</option>`;
+    const dayName = day.querySelector('span:first-child').textContent;
+    const dayNumber = day.querySelector('span:last-child p').textContent;
+    const dateStr = day.dataset.date;
+
+    if (dateStr) {
+      const dayDate = new Date(dateStr);
+      dayDate.setHours(0, 0, 0, 0);
+      if (dayDate >= today) {
+        const displayText = `${dayName} ${dayNumber}`;
+        dropdown.innerHTML += `<option value="${dateStr}">${displayText}</option>`;
+      }
+    }
   });
+
+  // Add the future date selector
+  const futureOption = document.createElement('option');
+  futureOption.value = "future";
+  futureOption.textContent = "Select Future Date...";
+  dropdown.appendChild(futureOption);
 }
+
+// Handle selecting a future date via prompt
+document.getElementById("task-day").addEventListener("change", function () {
+  if (this.value === "future") {
+    const futureDate = prompt("Enter future date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
+
+    if (futureDate) {
+      const selectedDate = new Date(futureDate);
+      selectedDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate >= today) {
+        const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayNumber = selectedDate.getDate();
+
+        this.innerHTML = this.innerHTML.replace(
+          '<option value="future">Select Future Date...</option>',
+          `<option value="${futureDate}">${dayName} ${dayNumber} (Future)</option>
+           <option value="future">Select Another Date...</option>`
+        );
+        this.value = futureDate;
+      } else {
+        alert("Please select a future date");
+        this.value = "";
+      }
+    } else {
+      this.value = "";
+    }
+  }
+});
 
 function addTask(title, time) {
   const taskId = Date.now();
@@ -153,5 +193,3 @@ function checked(id) {
     check.classList.remove("bg-[#36d344]");
   }
 }
-
-
