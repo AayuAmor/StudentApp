@@ -1,1 +1,33 @@
 <!-- this my html file-->
+ <!DOCTYPE html>
+<html lang="en">        
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>My Calendar</h1>
+    <div id="calendar"></div>
+    <script src="script.js"></script>
+    
+</body>
+<iframe src="https://www.hamropatro.com/widgets/calender-medium.php" frameborder="0" scrolling="no" marginwidth="0" marginheight="0" style="border:none; overflow:hidden; width:375px; height:405px;" allowtransparency="true"></iframe>
+<div style="color: #b00; font-size: 14px;">
+<form id="eventForm" style="margin-top:10px;">
+        <h2>Add Event</h2>
+        <label for="eventDate">Event Date:</label>
+        <input type="date" id="eventDate" required>
+        <input type="text" id="eventTitle" placeholder="Event Title" required>
+        <button type="submit">Add Event</button>
+        <ul id="eventList"></ul>
+</form>
+    <h2>Task List</h2>
+    <ul id="taskList"></ul>
+    <label for="taskInput">Add Task:</label>
+    <input type="date" id="taskDate" required>
+    <input type="text" id="taskInput" placeholder="Enter task here">
+    <button id="addTaskBtn" type="button" style="margin-top:5px;">Add Task</button>       
+</div>
+</html>
