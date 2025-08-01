@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentApp - All-in-One Study Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles */
+        .app-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .nav-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-tab.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        
+        .nav-tab:hover {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        /* Pomodoro Timer Styles */
+        .timer-container {
+            background-color: #2a2a40;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .timer-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .timer-circle svg circle {
+            fill: none;
+            stroke-width: 10;
+        }
+        
+        .timer-circle .bg {
+            stroke: #555;
+        }
+        
+        .timer-circle .progress {
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            transition: stroke-dashoffset 1s linear, stroke 0.5s linear;
+        }
+        
+        .timer-time {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            color: white;
+        }
+        
+        /* Notes Styles */
+        .notes-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .note-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin: 10px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .add-note-btn {
+            background-color: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            height: 150px;
+            width: 200px;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .add-note-btn:hover {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+        
+        /* Calendar Styles */
+        .calendar-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* Todo List Styles */
+        .todo-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .strike_none {
+            text-decoration: none;
+        }
+        
+        .strike_done {
+            text-decoration: line-through;
+            color: #5b7a9d;
+        }
+        
+        /* Additional styles for your original components */
+        .dragging {
+            opacity: 0.5;
+        }
+        
+        .green {
+            background-color: #36d344 !important;
+            border-color: #36d344 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-6">
+                    <div class="flex items-center">
+                        <h1 class="text-3xl font-bold text-gray-900">
+                            <i class="fas fa-graduation-cap text-indigo-600 mr-2"></i>
+                            StudentApp
+                        </h1>
+                        <span class="ml-2 text-sm text-gray-500">All-in-One Study Hub</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="current-time" class="text-gray-600"></span>
+                        <span id="current-date" class="text-gray-600"></span>
+                    </div>
+                </div>
+                
+                <!-- Navigation Tabs -->
+                <nav class="flex space-x-1 mb-4">
+                    <button class="nav-tab active px-4 py-2 rounded-lg font-medium" onclick="showSection('home')">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </button>
+                    <button class="nav-tab px-4 py-2 rounded-lg font-medium" onclick="showSection('todo')">
+                        <i class="fas fa-tasks mr-2"></i>To-Do List
+                    </button>
+                    <button class="nav-tab px-4 py-2 rounded-lg font-medium" onclick="showSection('pomodoro')">
+                        <i class="fas fa-clock mr-2"></i>Pomodoro Timer
+                    </button>
+                    <button class="nav-tab px-4 py-2 rounded-lg font-medium" onclick="showSection('notes')">
+                        <i class="fas fa-sticky-note mr-2"></i>Notes
+                    </button>
+                    <button class="nav-tab px-4 py-2 rounded-lg font-medium" onclick="showSection('calendar')">
+                        <i class="fas fa-calendar mr-2"></i>Calendar
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            <!-- Home Section -->
+            <section id="home-section" class="content-section active">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-white mb-4">Welcome to StudentApp</h2>
+                    <p class="text-xl text-white opacity-90">Your complete study companion - made by students, for students</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Feature Cards -->
+                    <div class="feature-card bg-white rounded-xl p-6 text-center" onclick="showSection('todo')">
+                        <div class="text-4xl text-blue-600 mb-4">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">To-Do List</h3>
+                        <p class="text-gray-600">Track your daily tasks and assignments with an intuitive drag-and-drop interface</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white rounded-xl p-6 text-center" onclick="showSection('pomodoro')">
+                        <div class="text-4xl text-red-600 mb-4">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Pomodoro Timer</h3>
+                        <p class="text-gray-600">Boost productivity with customizable work and break intervals</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white rounded-xl p-6 text-center" onclick="showSection('notes')">
+                        <div class="text-4xl text-yellow-600 mb-4">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Notes</h3>
+                        <p class="text-gray-600">Organize your thoughts and study materials in one convenient place</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white rounded-xl p-6 text-center" onclick="showSection('calendar')">
+                        <div class="text-4xl text-green-600 mb-4">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Calendar</h3>
+                        <p class="text-gray-600">Stay on top of important dates and events with integrated calendar</p>
+                    </div>
+                </div>
+                
+                <!-- Team Section -->
+                <div class="mt-16 bg-white rounded-xl p-8">
+                    <h3 class="text-2xl font-bold text-center mb-8">Meet Team Doberman</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold">Aayush</h4>
+                            <a href="https://github.com/AayuAmor" class="text-blue-600 hover:underline">@AayuAmor</a>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold">Saffer</h4>
+                            <a href="https://github.com/SafferStha" class="text-blue-600 hover:underline">@SafferStha</a>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold">Jenish</h4>
+                            <a href="https://github.com/Jenish995" class="text-blue-600 hover:underline">@Jenish995</a>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-user text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-semibold">Prabin</h4>
+                            <a href="https://github.com/Probeen001" class="text-blue-600 hover:underline">@Probeen001</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Todo List Section -->
+            <section id="todo-section" class="content-section">
+                <div class="flex justify-center">
+                    <div class="todo-container w-full max-w-md p-6">
+                        <div class="flex justify-between items-center text-sm text-gray-600 mb-4">
+                            <p id="todo-date" class="set_date"></p>
+                            <p id="todo-time" class="set_time"></p>
+                        </div>
+
+                        <h2 class="text-2xl font-semibold text-indigo-800 mb-6">To-do List</h2>
+
+                        <div class="w-full mb-4 flex text-sm flex-col text-center justify-center">
+                            <div id="calendar-row" class="flex justify-between px-4">
+                                <!-- JS will populate day name + date inside here -->
+                            </div>
+                        </div>
+
+                        <ul class="my-4" id="task-container">
+                            <!-- Tasks will be populated here -->
+                        </ul>
+
+                        <!-- Task Button -->
+                        <div class="mt-4 flex justify-center">
+                            <button id="add-task-btn" class="bg-indigo-700 text-white px-4 py-2 rounded hover:bg-indigo-800 transition">
+                                ➕ Add Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Modal -->
+                <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+                    <div class="bg-white p-6 rounded-lg w-80 space-y-4">
+                        <h2 class="text-lg font-semibold text-indigo-800">Add New Task</h2>
+                        <input id="task-title" type="text" placeholder="Task Title" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
+                        <select id="task-day" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
+                            <!-- JS will populate day options -->
+                        </select>
+                        <input id="task-time" type="time" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
+                        <div class="flex justify-end gap-2">
+                            <button id="cancel-task" class="px-3 py-1 text-sm text-gray-600 hover:underline">Cancel</button>
+                            <button id="save-task" class="bg-indigo-700 text-white px-3 py-1 rounded text-sm">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Task Modal -->
+                <div id="edit-task-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-30 flex justify-center items-center">
+                    <div class="bg-white p-6 rounded shadow-md w-80">
+                        <h2 class="text-lg font-semibold mb-4">Edit Task</h2>
+                        <input id="edit-title" class="w-full border px-2 py-1 rounded mb-2" placeholder="Task title" />
+                        <input id="edit-date" type="date" class="w-full border px-2 py-1 rounded mb-2" />
+                        <input id="edit-time" type="time" class="w-full border px-2 py-1 rounded mb-4" />
+                        <div class="flex justify-between">
+                            <button id="update-task-btn" class="bg-blue-500 text-white px-3 py-1 rounded">Update</button>
+                            <button id="delete-task-btn" class="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                            <button id="cancel-edit-btn" class="bg-gray-400 text-white px-3 py-1 rounded">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pomodoro Timer Section -->
+            <section id="pomodoro-section" class="content-section">
+                <div class="flex justify-center">
+                    <div class="timer-container text-white p-10 max-w-md w-full text-center">
+                        <h2 class="text-3xl font-bold mb-8">Pomodoro Timer</h2>
+
+                        <button id="edit-time-btn" class="bg-blue-600 text-white px-4 py-2 rounded mb-4" onclick="toggleEditTime()">Edit Time</button>
+
+                        <div class="bg-gray-700 p-4 rounded-lg mb-6" id="set-time-panel" style="display: none;">  
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <label class="text-white">Working Time:</label>
+                                    <input type="number" id="work-min" value="25" min="1" class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white">
+                                    <span class="text-white">min</span>
+                                </div>
+                                
+                                <div class="text-white font-semibold">Breaks:</div>
+                                
+                                <div class="flex items-center justify-center gap-2">
+                                    <label class="text-white">Short Break:</label>
+                                    <input type="number" id="short-min" value="5" min="1" class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white">
+                                    <span class="text-white">min</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-center gap-2">
+                                    <label class="text-white">Long Break:</label>
+                                    <input type="number" id="long-min" value="15" min="1" class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white">
+                                    <span class="text-white">min</span>
+                                </div>
+                                
+                                <button onclick="setCustomTimes()" class="bg-cyan-600 text-white px-4 py-2 rounded">Set Time</button>
+                            </div>
+                        </div>
+
+                        <div class="timer-circle mb-8">
+                            <svg width="200" height="200">
+                                <circle class="bg" r="90" cx="100" cy="100"></circle>
+                                <circle class="progress" r="90" cx="100" cy="100" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+                            </svg>
+                            <div class="timer-time" id="timer">25:00</div>
+                        </div>
+
+                        <div class="flex justify-center gap-4">
+                            <button class="bg-green-600 text-white px-6 py-2 rounded" onclick="startTimer()">Start</button>
+                            <button class="bg-yellow-600 text-white px-6 py-2 rounded" onclick="pauseTimer()">Pause</button>
+                            <button class="bg-red-600 text-white px-6 py-2 rounded" onclick="resetTimer()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notes Section -->
+            <section id="notes-section" class="content-section">
+                <div class="notes-container p-6 max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-center mb-6">Notes</h2>
+                    
+                    <div class="flex flex-wrap justify-center">
+                        <div class="add-note-btn" onclick="popup()">
+                            <i class="fas fa-plus text-3xl text-gray-400"></i>
+                        </div>
+                        <div id="notes-list" class="flex flex-wrap justify-center w-full">
+                            <!-- Notes will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Section -->
+            <section id="calendar-section" class="content-section">
+                <div class="calendar-container p-6 max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-center mb-6">Calendar & Events</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Calendar Widget -->
+                        <div class="text-center">
+                            <iframe src="https://www.hamropatro.com/widgets/calender-medium.php" 
+                                    frameborder="0" scrolling="no" marginwidth="0" marginheight="0" 
+                                    style="border:none; overflow:hidden; width:375px; height:405px;" 
+                                    allowtransparency="true" class="mx-auto rounded-lg shadow">
+                            </iframe>
+                        </div>
+                        
+                        <!-- Events Section -->
+                        <div>
+                            <form id="eventForm" class="bg-gray-50 p-4 rounded-lg mb-4">
+                                <h3 class="text-lg font-semibold mb-4">Add Event</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label for="eventDate" class="block text-sm font-medium text-gray-700">Event Date:</label>
+                                        <input type="date" id="eventDate" required class="w-full border border-gray-300 rounded px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <input type="text" id="eventTitle" placeholder="Event Title" required class="w-full border border-gray-300 rounded px-3 py-2">
+                                    </div>
+                                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Add Event</button>
+                                </div>
+                            </form>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3">Upcoming Events</h3>
+                                <ul id="eventList" class="space-y-2">
+                                    <!-- Events will be populated here -->
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="text-lg font-semibold mb-3">Quick Tasks</h3>
+                                <div class="space-y-3">
+                                    <input type="date" id="taskDate" required class="w-full border border-gray-300 rounded px-3 py-2">
+                                    <input type="text" id="taskInput" placeholder="Enter task here" class="w-full border border-gray-300 rounded px-3 py-2">
+                                    <button id="addTaskBtn" type="button" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Add Task</button>
+                                </div>
+                                <ul id="taskList" class="mt-4 space-y-2">
+                                    <!-- Tasks will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
