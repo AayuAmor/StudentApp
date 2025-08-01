@@ -234,9 +234,184 @@ function drag(event) {
     event.target.classList.add("dragging");
 }
 
+// ===============================
+// POMODORO TIMER FUNCTIONALITY
+// ===============================
+
+// Timer configuration and state
+let workDuration = 25 * 60; // 25 minutes in seconds
+let shortBreak = 5 * 60;    // 5 minutes
+let longBreak = 15 * 60;    // 15 minutes
+let current = workDuration;
+let interval = null;
+let isRunning = false;
+let session = "Work";
+
+/**
+ * Initializes pomodoro timer with SVG progress circle
+ */
+function initializePomodoro() {
+    const timerElement = document.getElementById("timer");
+    const progressCircle = document.querySelector(".progress");
+    
+    if (!timerElement || !progressCircle) return;
+    
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+    progressCircle.style.strokeDasharray = circumference;
+    
+    updateTimerDisplay();
+}
+
+/**
+ * Updates timer display with current time and progress
+ */
+function updateTimerDisplay() {
+    const timerElement = document.getElementById("timer");
+    const progressCircle = document.querySelector(".progress");
+    
+    if (!timerElement || !progressCircle) return;
+    
+    const minutes = Math.floor(current / 60);
+    const seconds = current % 60;
+    timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    // Update progress circle
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (current / getSessionDuration()) * circumference;
+    progressCircle.style.strokeDashoffset = offset;
+
+    // Dynamic color transition: green → yellow → red
+    const percent = current / getSessionDuration();
+    let r, g, b;
+    if (percent > 0.5) {
+        const t = (1 - percent) * 2;
+        r = Math.round(0 + (255 - 0) * t);
+        g = 255;
+        b = Math.round(99 - 99 * t);
+    } else {
+        const t = 1 - percent * 2;
+        r = 255;
+        g = Math.round(255 - 255 * t);
+        b = 0;
+    }
+    progressCircle.style.stroke = `rgb(${r},${g},${b})`;
+}
+
+/**
+ * Gets duration for current session type
+ */
+function getSessionDuration() {
+    if (session === "Work") return workDuration;
+    if (session === "Short Break") return shortBreak;
+    return longBreak;
+}
+
+/**
+ * Starts pomodoro timer countdown
+ */
+function startTimer() {
+    if (isRunning) return;
+    isRunning = true;
+    interval = setInterval(() => {
+        if (current === 0) {
+            clearInterval(interval);
+            isRunning = false;
+            if (session === "Work") {
+                session = "Short Break";
+                current = shortBreak;
+                alert("Work session complete! Time for a break.");
+            } else if (session === "Short Break") {
+                session = "Work";
+                current = workDuration;
+                alert("Break over! Ready to work?");
+            }
+            updateTimerDisplay();
+            return;
+        }
+        current--;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+/**
+ * Pauses active timer
+ */
+function pauseTimer() {
+    clearInterval(interval);
+    isRunning = false;
+    updateTimerDisplay();
+}
+
+/**
+ * Resets timer to work session
+ */
+function resetTimer() {
+    pauseTimer();
+    session = "Work";
+    current = workDuration;
+    updateTimerDisplay();
+}
+
+/**
+ * Toggles time customization panel
+ */
+function toggleEditTime() {
+    const setTimePanel = document.getElementById("set-time-panel");
+    const editTimeBtn = document.getElementById("edit-time-btn");
+    
+    if (setTimePanel.style.display === "none" || setTimePanel.style.display === "") {
+        setTimePanel.style.display = "flex";
+        editTimeBtn.textContent = "Close";
+        pauseTimer();
+    } else {
+        setTimePanel.style.display = "none";
+        editTimeBtn.textContent = "Edit Time";
+    }
+}
+
+/**
+ * Applies custom time settings
+ */
+function setCustomTimes() {
+    const workInput = document.getElementById("work-min");
+    const shortInput = document.getElementById("short-min");
+    const longInput = document.getElementById("long-min");
+
+    const workVal = parseInt(workInput.value);
+    const shortVal = parseInt(shortInput.value);
+    const longVal = parseInt(longInput.value);
+
+    if (isNaN(workVal) || workVal < 1) {
+        alert("Work time must be at least 1 minute.");
+        return;
+    }
+    if (isNaN(shortVal) || shortVal < 1) {
+        alert("Short break must be at least 1 minute.");
+        return;
+    }
+    if (isNaN(longVal) || longVal < 1) {
+        alert("Long break must be at least 1 minute.");
+        return;
+    }
+
+    workDuration = workVal * 60;
+    shortBreak = shortVal * 60;
+    longBreak = longVal * 60;
+
+    if (session === "Work") current = workDuration;
+    else if (session === "Short Break") current = shortBreak;
+    else current = longBreak;
+
+    updateTimerDisplay();
+    toggleEditTime();
+}
+
 // Initialize app when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     updateDateTime();
     setInterval(updateDateTime, 1000);
     initializeTodoList();
+    initializePomodoro();
 });
