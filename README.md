@@ -1,45 +1,83 @@
-# StudentApp
+# StudentApp - All-in-One Study Hub
 
-StudentApp is built by students for students. It's a collection of simple, helpful tools to make studying, organizing, and keeping track of your progress a little easier every day.
+![Status](https://img.shields.io/badge/Status-Live-brightgreen)
+![Version](https://img.shields.io/badge/Version-2.0.0-blue)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
+![CSS](https://img.shields.io/badge/CSS-Tailwind-blue)
+![HTML5](https://img.shields.io/badge/HTML5-5-orange)
 
-With StudentApp, you can:
+StudentApp is built by students for students. It's a comprehensive web application designed to make studying, organizing, and tracking your progress easier every day.
 
-- Track your daily tasks and assignments
-- Use productivity tools like Pomodoro Timer and Timetable Planner
-- Monitor your academic progress
-- Stay updated with an integrated event calendar
-- Take quick study breaks with mini-games
-- Organize notes and resources in one place
+## 🚀 What's New in v2.0.0
 
-Our mission is to empower students with an all-in-one solution for academic success and personal growth.
+- ✅ **Complete Data Persistence**: All your data is now automatically saved and restored
+- ✅ **Advanced Analytics**: Productivity scoring and comprehensive dashboard metrics  
+- ✅ **Enhanced Pomodoro**: Session tracking, streaks, and statistics
+- ✅ **Smart Task Management**: Real-time updates with priority organization
+- ✅ **Professional Notes**: Timestamped notes with full CRUD operations
+- ✅ **Calendar Integration**: Event management with task scheduling
+
+## 📋 Features
+
+### ✅ Completed & Live
+- **To-Do List**: Smart task organization with real-time persistence
+- **Pomodoro Timer**: Focus sessions with productivity analytics  
+- **Notes Management**: Professional note-taking with timestamps
+- **Event Calendar**: Full calendar functionality with event management
+- **Dashboard Analytics**: Productivity scoring and progress tracking
+- **Data Manager**: Centralized persistence across all modules
+
+### 🔄 Roadmap Updates
+- [x] ~~To-Do List~~ ✅ **ENHANCED**
+- [x] ~~Pomodoro Timer~~ ✅ **ENHANCED** 
+- [x] ~~Notes Management~~ ✅ **ENHANCED**
+- [x] ~~Event Calendar~~ ✅ **COMPLETED**
+- [ ] Timetable Planner *(in development)*
+- [ ] Academic Progress Tracker *(planned)*
+- [ ] Study Break Games *(planned)*
+
+## 🛠️ Technology Stack
+
+- **Frontend**: HTML5, CSS3 (Tailwind CSS), Vanilla JavaScript ES6+
+- **Storage**: localStorage with custom DataManager class
+- **Icons**: Font Awesome 6.5.1
+- **Design**: Mobile-first responsive design
+
+## 🚀 Quick Start
+
+1. **Clone & Open**
+   ```bash
+   git clone https://github.com/AayuAmor/StudentApp.git
+   cd StudentApp
+   open index.html  # Works offline, no build required!
+   ```
+
+2. **Start Using**
+   - Navigate between sections using the top bar
+   - All data automatically saves as you work
+   - Enjoy a seamless, productive experience!
+
+## 👥 Meet Team Doberman
+
+- [@Aayush](https://github.com/AayuAmor) - Lead Developer & Architecture
+- [@Saffer](https://github.com/SafferStha) - Frontend & UI/UX  
+- [@Jenish](https://github.com/Jenish995) - Backend & Data Management
+- [@Prabin](https://github.com/Probeen001) - Testing & Documentation
+
+## 🤝 Contributing
+
+We welcome contributions! Please feel free to:
+- ⭐ Star the repository
+- 🐛 Report bugs via Issues
+- 💡 Suggest new features  
+- 🤝 Submit Pull Requests
+
+## 🎓 Academic Project
+
+This is an open-source academic project created by Team Doberman. Feel free to use, modify, and learn from the code!
+
+---
 
 > ## Made by students, for students
 
-## Meet Team Doberman
-
-- [@Aayush](https://github.com/AayuAmor)
-- [@Saffer](https://github.com/SafferStha)
-- [@Jenish](https://github.com/Jenish995)
-- [@Prabin](https://github.com/Probeen001)
-
-## Features
-
-- To-Do List
-- Pomodoro Timer
-- Notes Management
-- Event Calendar *(coming soon)*
-- Timetable Planner *(coming soon)*
-- Academic Progress Tracker *(coming soon)*
-- Tiny Games for Study Breaks ***(coming soon)***
-
-## Roadmap 🗺️
-
-- [x] To-Do List
-- [x] Pomodoro Timer
-- [x] Notes Management
-- [ ] Event Calendar
-- [ ] Timetable Planner
-- [ ] Academic Progress Tracker
-- [ ] Tiny Games for Study Breaks
-
-> ### *And many more features on the way…*
+**Empowering academic success through smart productivity tools.**
