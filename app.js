@@ -287,8 +287,8 @@ function saveAllData() {
         isRunning: false // Don't persist running state
       },
       notes: DataManager.load('notes') || [],
-      events: JSON.parse(localStorage.getItem('studentapp-events')) || [],
-      calendarTasks: JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [],
+      events: DataManager.load('studentapp-events') || [],
+      calendarTasks: DataManager.load('studentapp-calendar-tasks') || [],
       lastSaved: new Date().toISOString()
     };
     
@@ -1209,9 +1209,9 @@ function addEvent() {
     createdAt: new Date().toISOString(),
   };
 
-  const events = JSON.parse(localStorage.getItem("studentapp-events")) || [];
+  const events = DataManager.load('studentapp-events') || [];
   events.push(event);
-  localStorage.setItem("studentapp-events", JSON.stringify(events));
+  DataManager.save('studentapp-events', events);
 
   // Clear form
   document.getElementById("eventDate").value = "";
@@ -1226,7 +1226,7 @@ function displayEvents() {
 
   eventList.innerHTML = "";
 
-  const events = JSON.parse(localStorage.getItem("studentapp-events")) || [];
+  const events = DataManager.load('studentapp-events') || [];
 
   // Sort events by date
   events.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1252,9 +1252,9 @@ function displayEvents() {
 
 function deleteEvent(eventId) {
   if (confirm("Are you sure you want to delete this event?")) {
-    const events = JSON.parse(localStorage.getItem("studentapp-events")) || [];
+    const events = DataManager.load('studentapp-events') || [];
     const filteredEvents = events.filter((e) => e.id !== eventId);
-    localStorage.setItem("studentapp-events", JSON.stringify(filteredEvents));
+    DataManager.save('studentapp-events', filteredEvents);
     displayEvents();
   }
 }
@@ -1276,13 +1276,9 @@ function addCalendarTask() {
     createdAt: new Date().toISOString(),
   };
 
-  const calendarTasks =
-    JSON.parse(localStorage.getItem("studentapp-calendar-tasks")) || [];
+  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
   calendarTasks.push(task);
-  localStorage.setItem(
-    "studentapp-calendar-tasks",
-    JSON.stringify(calendarTasks)
-  );
+  DataManager.save('studentapp-calendar-tasks', calendarTasks);
 
   // Clear form
   document.getElementById("taskDate").value = "";
@@ -1297,8 +1293,7 @@ function displayCalendarTasks() {
 
   taskList.innerHTML = "";
 
-  const calendarTasks =
-    JSON.parse(localStorage.getItem("studentapp-calendar-tasks")) || [];
+  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
 
   // Sort tasks by date
   calendarTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1337,29 +1332,21 @@ function displayCalendarTasks() {
 }
 
 function toggleCalendarTask(taskId) {
-  const calendarTasks =
-    JSON.parse(localStorage.getItem("studentapp-calendar-tasks")) || [];
+  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
   const taskIndex = calendarTasks.findIndex((t) => t.id === taskId);
 
   if (taskIndex !== -1) {
     calendarTasks[taskIndex].completed = !calendarTasks[taskIndex].completed;
-    localStorage.setItem(
-      "studentapp-calendar-tasks",
-      JSON.stringify(calendarTasks)
-    );
+    DataManager.save('studentapp-calendar-tasks', calendarTasks);
     displayCalendarTasks();
   }
 }
 
 function deleteCalendarTask(taskId) {
   if (confirm("Are you sure you want to delete this task?")) {
-    const calendarTasks =
-      JSON.parse(localStorage.getItem("studentapp-calendar-tasks")) || [];
+    const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
     const filteredTasks = calendarTasks.filter((t) => t.id !== taskId);
-    localStorage.setItem(
-      "studentapp-calendar-tasks",
-      JSON.stringify(filteredTasks)
-    );
+    DataManager.save('studentapp-calendar-tasks', filteredTasks);
     displayCalendarTasks();
   }
 }
