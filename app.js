@@ -83,6 +83,8 @@ function initializeTodoList() {
     setupWeeklyCalendar();
     // Set up event listeners
     setupTodoEvents();
+    // Initialize drag and drop
+    setupDragAndDrop();
 }
 
 function setupWeeklyCalendar() {
@@ -291,6 +293,41 @@ function drag(event) {
     event.target.classList.add("dragging");
 }
 
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function setupDragAndDrop() {
+    const taskContainer = document.getElementById("task-container");
+    if (taskContainer) {
+        taskContainer.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(this, e.clientY);
+            const draggable = draggedItem;
+            
+            if (afterElement == null) {
+                this.appendChild(draggable);
+            } else {
+                this.insertBefore(draggable, afterElement);
+            }
+        });
+
+        taskContainer.addEventListener("dragend", function(e) {
+            e.target.classList.remove("dragging");
+        });
+    }
+}
+
 // ===============================
 // POMODORO TIMER FUNCTIONALITY
 // ===============================
@@ -381,6 +418,61 @@ function resetTimer() {
     session = "Work";
     current = workDuration;
     updateDisplay();
+}
+
+function toggleEditTime() {
+    const setTimePanel = document.getElementById("set-time-panel");
+    const editTimeBtn = document.getElementById("edit-time-btn");
+    
+    if (setTimePanel && setTimePanel.style.display === "none" || setTimePanel.style.display === "") {
+        setTimePanel.style.display = "flex";
+        editTimeBtn.textContent = "Close";
+        pauseTimer();
+    } else if (setTimePanel) {
+        setTimePanel.style.display = "none";
+        editTimeBtn.textContent = "Edit Time";
+    }
+}
+
+function setCustomTimes() {
+    const workInput = document.getElementById("work-min");
+    const shortInput = document.getElementById("short-min");
+    const longInput = document.getElementById("long-min");
+
+    const workVal = parseInt(workInput.value);
+    const shortVal = parseInt(shortInput.value);
+    const longVal = parseInt(longInput.value);
+
+    if (isNaN(workVal) || workVal < 1) {
+        alert("Work time must be a positive number.");
+        workInput.focus();
+        return;
+    }
+    if (isNaN(shortVal) || shortVal < 1) {
+        alert("Short break time must be a positive number.");
+        shortInput.focus();
+        return;
+    }
+    if (isNaN(longVal) || longVal < 1) {
+        alert("Long break time must be a positive number.");
+        longInput.focus();
+        return;
+    }
+
+    workDuration = workVal * 60;
+    shortBreak = shortVal * 60;
+    longBreak = longVal * 60;
+
+    if (session === "Work") current = workDuration;
+    else if (session === "Short Break") current = shortBreak;
+    else current = longBreak;
+
+    updateDisplay();
+
+    const setTimePanel = document.getElementById("set-time-panel");
+    const editTimeBtn = document.getElementById("edit-time-btn");
+    if (setTimePanel) setTimePanel.style.display = "none";
+    if (editTimeBtn) editTimeBtn.textContent = "Edit Time";
 }
 
 // ===============================
