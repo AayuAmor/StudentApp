@@ -63,9 +63,9 @@ StudentApp is built by students for students. It's a comprehensive web applicati
 ## 👥 Meet Team Doberman
 
 - [@Aayush](https://github.com/AayuAmor) - Lead Developer & Architecture
-- [@Saffer](https://github.com/SafferStha) - Frontend & UI/UX
+- [@Saffer](https://github.com/SafferStha) - Frontend, UI/UX & Backend Developer
 - [@Jenish](https://github.com/Jenish995) - Backend & Data Management
-- [@Prabin](https://github.com/Probeen001) - Testing & Documentation
+- [@Prabin](https://github.com/Probeen001) - Backend, Testing & Documentation
 
 ## 🤝 Contributing
 
