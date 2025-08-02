@@ -44,6 +44,8 @@ function showSection(sectionName) {
         initializeTodoList();
     } else if (sectionName === 'pomodoro') {
         initializePomodoro();
+    } else if (sectionName === 'notes') {
+        displayNotes();
     }
 }
 
@@ -67,6 +69,7 @@ function updateDateTime() {
 document.addEventListener('DOMContentLoaded', function() {
     updateDateTime();
     setInterval(updateDateTime, 1000);
+    displayNotes();
 });
 
 // ===============================
@@ -376,5 +379,159 @@ function resetTimer() {
     session = "Work";
     current = workDuration;
     updateDisplay();
+}
+
+// ===============================
+// NOTES FUNCTIONALITY
+// ===============================
+
+function popup() {
+    const popupContainer = document.createElement("div");
+    popupContainer.innerHTML = `
+    <div id="popupContainer" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h1 class="text-xl font-semibold mb-4">New note</h1>
+            <textarea id="note-text" placeholder="Enter your note..." class="w-full h-32 border border-gray-300 rounded px-3 py-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div id="btn-container" class="flex justify-end gap-2">
+                <button id="submitBtn" onclick="createNote()" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Create Note</button>
+                <button id="closeBtn" onclick="closePopup()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+            </div>
+        </div>
+    </div>
+    `;
+    document.body.appendChild(popupContainer);
+    
+    setTimeout(() => {
+        document.getElementById('note-text').focus();
+    }, 100);
+}
+
+function closePopup() {
+    const popupContainer = document.getElementById("popupContainer");
+    if (popupContainer) {
+        popupContainer.remove();
+    }
+}
+
+function createNote() {
+    const popupContainer = document.getElementById('popupContainer');
+    const noteText = document.getElementById('note-text').value;
+    if (noteText.trim() !== '') {
+        const timestamp = new Date().toISOString();
+        const note = {
+            id: new Date().getTime(),
+            text: noteText,
+            createdAt: timestamp,
+            updatedAt: timestamp
+        };
+
+        const existingNotes = JSON.parse(localStorage.getItem('notes')) || [];
+        existingNotes.push(note);
+
+        localStorage.setItem('notes', JSON.stringify(existingNotes));
+        popupContainer.remove();
+        displayNotes();
+    }
+}
+
+function displayNotes() {
+    const notesList = document.getElementById('notes-list');
+    if (!notesList) return;
+    
+    notesList.innerHTML = '';
+
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+    notes.forEach(note => {
+        const listItem = document.createElement('div');
+        listItem.className = 'note-item w-48 h-40 m-2 p-3 bg-yellow-100 border border-yellow-200 rounded-lg shadow-sm relative';
+        
+        const createdAt = new Date(note.createdAt).toLocaleString();
+
+        listItem.innerHTML = `
+            <div class="text-xs text-gray-600 mb-2">Created: ${createdAt}</div>
+            <div class="text-sm overflow-hidden h-20">${note.text}</div>
+            <div id="noteBtns-container" class="absolute bottom-2 right-2 flex gap-1">
+                <button id="editBtn" onclick="editNote(${note.id})" class="text-blue-600 hover:text-blue-800">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button id="deleteBtn" onclick="deleteNote(${note.id})" class="text-red-600 hover:text-red-800">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            </div>
+        `;
+        notesList.appendChild(listItem);
+    });
+}
+
+function editNote(noteId) {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const noteToEdit = notes.find(note => note.id == noteId);
+    const noteText = noteToEdit ? noteToEdit.text : '';
+    const updatedAt = noteToEdit ? new Date(noteToEdit.updatedAt).toLocaleString() : '';
+
+    const editingPopup = document.createElement("div");
+
+    editingPopup.innerHTML = `
+    <div id="editing-container" data-note-id="${noteId}" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h1 class="text-xl font-semibold mb-2">Edit Note</h1>
+            <small class="text-gray-600 block mb-4">Last Edited: ${updatedAt}</small>
+            <textarea id="note-text" class="w-full h-32 border border-gray-300 rounded px-3 py-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500">${noteText}</textarea>
+            <div id="btn-container" class="flex justify-end gap-2">
+                <button id="submitBtn" onclick="updateNote()" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Done</button>
+                <button id="closeBtn" onclick="closeEditPopup()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+            </div>
+        </div>
+    </div>
+    `;
+
+    document.body.appendChild(editingPopup);
+    
+    setTimeout(() => {
+        document.getElementById('note-text').focus();
+    }, 100);
+}
+
+function closeEditPopup() {
+    const editingPopup = document.getElementById("editing-container");
+    if (editingPopup) {
+        editingPopup.remove();
+    }
+}
+
+function updateNote() {
+    const noteText = document.getElementById('note-text').value.trim();
+    const editingPopup = document.getElementById('editing-container');
+
+    if (noteText !== '') {
+        const noteId = editingPopup.getAttribute('data-note-id');
+        let notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+        const updatedNotes = notes.map(note => {
+            if (note.id == noteId) {
+                return {
+                    ...note,
+                    text: noteText,
+                    updatedAt: new Date().toISOString()
+                };
+            }
+            return note;
+        });
+
+        localStorage.setItem('notes', JSON.stringify(updatedNotes));
+        editingPopup.remove();
+        displayNotes();
+    }
+}
+
+function deleteNote(noteId) {
+    if (confirm('Are you sure you want to delete this note?')) {
+        let notes = JSON.parse(localStorage.getItem('notes')) || [];
+        notes = notes.filter(note => note.id !== noteId);
+
+        localStorage.setItem('notes', JSON.stringify(notes));
+        displayNotes();
+    }
 }
 
