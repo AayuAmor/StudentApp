@@ -11,6 +11,15 @@ let currentSection = 'home';
 let tasks = {};
 let draggedItem = null;
 
+// Pomodoro timer state
+let workDuration = 25 * 60;
+let shortBreak = 5 * 60;
+let longBreak = 15 * 60;
+let current = workDuration;
+let interval = null;
+let isRunning = false;
+let session = "Work";
+
 /**
  * Navigation system - handles section switching
  */
@@ -33,6 +42,8 @@ function showSection(sectionName) {
     // Initialize section-specific functionality
     if (sectionName === 'todo') {
         initializeTodoList();
+    } else if (sectionName === 'pomodoro') {
+        initializePomodoro();
     }
 }
 
@@ -273,5 +284,97 @@ function toggleTask(id) {
 function drag(event) {
     draggedItem = event.target;
     event.target.classList.add("dragging");
+}
+
+// ===============================
+// POMODORO TIMER FUNCTIONALITY
+// ===============================
+
+function initializePomodoro() {
+    const timerElement = document.getElementById("timer");
+    const progressCircle = document.querySelector(".progress");
+    
+    if (!timerElement || !progressCircle) return;
+    
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+    progressCircle.style.strokeDasharray = circumference;
+    
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const timerElement = document.getElementById("timer");
+    const progressCircle = document.querySelector(".progress");
+    
+    if (!timerElement || !progressCircle) return;
+    
+    const minutes = Math.floor(current / 60);
+    const seconds = current % 60;
+    timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (current / getSessionDuration()) * circumference;
+    progressCircle.style.strokeDashoffset = offset;
+
+    // Dynamic color transition
+    const percent = current / getSessionDuration();
+    let r, g, b;
+    if (percent > 0.5) {
+        const t = (1 - percent) * 2;
+        r = Math.round(0 + (255 - 0) * t);
+        g = 255;
+        b = Math.round(99 - 99 * t);
+    } else {
+        const t = 1 - percent * 2;
+        r = 255;
+        g = Math.round(255 - 255 * t);
+        b = 0;
+    }
+    progressCircle.style.stroke = `rgb(${r},${g},${b})`;
+}
+
+function getSessionDuration() {
+    if (session === "Work") return workDuration;
+    if (session === "Short Break") return shortBreak;
+    return longBreak;
+}
+
+function startTimer() {
+    if (isRunning) return;
+    isRunning = true;
+    interval = setInterval(() => {
+        if (current === 0) {
+            clearInterval(interval);
+            isRunning = false;
+            if (session === "Work") {
+                session = "Short Break";
+                current = shortBreak;
+                alert("Work done! Time for a break.");
+            } else if (session === "Short Break") {
+                session = "Work";
+                current = workDuration;
+                alert("Break over! Back to work.");
+            }
+            updateDisplay();
+            return;
+        }
+        current--;
+        updateDisplay();
+    }, 1000);
+}
+
+function pauseTimer() {
+    clearInterval(interval);
+    isRunning = false;
+    updateDisplay();
+}
+
+function resetTimer() {
+    pauseTimer();
+    session = "Work";
+    current = workDuration;
+    updateDisplay();
 }
 
