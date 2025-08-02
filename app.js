@@ -650,6 +650,12 @@ function toggleTask(id) {
 
   if (tasks[id]) {
     tasks[id].completed = !isDone;
+    
+    // Save updated tasks to DataManager
+    const tasksArray = Object.values(tasks);
+    DataManager.save('tasks', tasksArray);
+    
+    console.log(`Task ${id} ${isDone ? 'completed' : 'uncompleted'}`);
   }
 }
 
