@@ -183,15 +183,29 @@ function updateDashboardStats() {
   try {
     const totalTasks = Object.keys(DataManager.load('tasks', {})).length;
     const completedTasks = Object.values(DataManager.load('tasks', {})).filter(task => task.completed).length;
+    const pendingTasks = totalTasks - completedTasks;
     const totalNotes = (DataManager.load('notes', []) || []).length;
     const totalEvents = (DataManager.load('studentapp-events', []) || []).length;
+    
+    // Calculate productivity metrics
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const todaysSessions = pomodoroStats.completedSessions;
+    const productivityScore = Math.min(100, 
+      Math.round((completionRate * 0.4) + (Math.min(todaysSessions / pomodoroStats.dailyGoal, 1) * 60))
+    );
 
     // Update stats display if elements exist
     const statsElements = {
       'total-tasks': totalTasks,
       'completed-tasks': completedTasks,
+      'pending-tasks': pendingTasks,
       'total-notes': totalNotes,
-      'total-events': totalEvents
+      'total-events': totalEvents,
+      'completion-rate': `${completionRate}%`,
+      'productivity-score': `${productivityScore}%`,
+      'pomodoro-sessions': todaysSessions,
+      'daily-goal': pomodoroStats.dailyGoal,
+      'current-streak': pomodoroStats.streak
     };
 
     Object.entries(statsElements).forEach(([id, value]) => {
