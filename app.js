@@ -12,14 +12,18 @@
  *              - Calendar: Event and task scheduling system
  */
 
-// Global state
+// ============================================================================
+// ENHANCED GLOBAL STATE MANAGEMENT
+// ============================================================================
+
+/** Current active section/view in the application */
 let currentSection = "home";
 
-// Todo list state
+/** Enhanced todo list state with localStorage integration */
 let tasks = {};
 let draggedItem = null;
 
-// Pomodoro timer state
+/** Enhanced Pomodoro timer state with persistence */
 let workDuration = 25 * 60;
 let shortBreak = 5 * 60;
 let longBreak = 15 * 60;
@@ -28,15 +32,104 @@ let interval = null;
 let isRunning = false;
 let session = "Work";
 
+/** Application settings with localStorage persistence */
+let appSettings = {
+  theme: 'default',
+  language: 'en',
+  autoSave: true,
+  pomodoroSettings: {
+    workDuration: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    autoStartBreaks: false,
+    soundEnabled: true
+  }
+};
+
+// ============================================================================
+// ENHANCED DATA PERSISTENCE SYSTEM
+// ============================================================================
+
 /**
- * Navigation system - handles section switching
+ * Advanced localStorage manager with error handling and data validation
+ */
+const DataManager = {
+  /**
+   * Safely saves data to localStorage with error handling
+   * @param {string} key - Storage key
+   * @param {any} data - Data to store
+   * @returns {boolean} Success status
+   */
+  save: function(key, data) {
+    try {
+      const serializedData = JSON.stringify({
+        data: data,
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      });
+      localStorage.setItem(`studentapp_${key}`, serializedData);
+      return true;
+    } catch (error) {
+      console.error(`Failed to save ${key}:`, error);
+      return false;
+    }
+  },
+
+  /**
+   * Safely loads data from localStorage with validation
+   * @param {string} key - Storage key
+   * @param {any} defaultValue - Default value if load fails
+   * @returns {any} Loaded data or default value
+   */
+  load: function(key, defaultValue = null) {
+    try {
+      const serializedData = localStorage.getItem(`studentapp_${key}`);
+      if (!serializedData) return defaultValue;
+      
+      const parsedData = JSON.parse(serializedData);
+      return parsedData.data || defaultValue;
+    } catch (error) {
+      console.error(`Failed to load ${key}:`, error);
+      return defaultValue;
+    }
+  },
+
+  /**
+   * Removes data from localStorage
+   * @param {string} key - Storage key
+   */
+  remove: function(key) {
+    try {
+      localStorage.removeItem(`studentapp_${key}`);
+    } catch (error) {
+      console.error(`Failed to remove ${key}:`, error);
+    }
+  },
+
+  /**
+   * Gets all stored data keys
+   * @returns {Array} Array of storage keys
+   */
+  getAllKeys: function() {
+    try {
+      return Object.keys(localStorage).filter(key => key.startsWith('studentapp_'));
+    } catch (error) {
+      console.error('Failed to get storage keys:', error);
+      return [];
+    }
+  }
+};
+
+/**
+ * Enhanced navigation system with state persistence and analytics
+ * @param {string} sectionName - Target section identifier
  */
 function showSection(sectionName) {
-  // Hide all sections
+  // Hide all content sections by removing active class
   const sections = document.querySelectorAll(".content-section");
   sections.forEach((section) => section.classList.remove("active"));
 
-  // Remove active state from nav tabs
+  // Reset navigation tabs to inactive state
   const navTabs = document.querySelectorAll(".nav-tab");
   navTabs.forEach((tab) => tab.classList.remove("active"));
 
@@ -47,15 +140,75 @@ function showSection(sectionName) {
   // Update global state tracker
   currentSection = sectionName;
 
+  // Save current section to localStorage for session restoration
+  DataManager.save('currentSection', sectionName);
+
   // Initialize section-specific functionality
-  if (sectionName === "todo") {
-    initializeTodoList();
-  } else if (sectionName === "pomodoro") {
-    initializePomodoro();
-  } else if (sectionName === "notes") {
-    displayNotes();
-  } else if (sectionName === "calendar") {
-    initializeCalendar();
+  switch (sectionName) {
+    case "todo":
+      initializeTodoList();
+      break;
+    case "pomodoro":
+      initializePomodoro();
+      break;
+    case "notes":
+      displayNotes();
+      break;
+    case "calendar":
+      initializeCalendar();
+      break;
+    case "home":
+      updateDashboardStats();
+      break;
+  }
+
+  // Track section usage for analytics
+  trackSectionUsage(sectionName);
+}
+
+/**
+ * Updates dashboard statistics and overview
+ */
+function updateDashboardStats() {
+  try {
+    const totalTasks = Object.keys(DataManager.load('tasks', {})).length;
+    const completedTasks = Object.values(DataManager.load('tasks', {})).filter(task => task.completed).length;
+    const totalNotes = (DataManager.load('notes', []) || []).length;
+    const totalEvents = (DataManager.load('studentapp-events', []) || []).length;
+
+    // Update stats display if elements exist
+    const statsElements = {
+      'total-tasks': totalTasks,
+      'completed-tasks': completedTasks,
+      'total-notes': totalNotes,
+      'total-events': totalEvents
+    };
+
+    Object.entries(statsElements).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    });
+  } catch (error) {
+    console.error('Error updating dashboard stats:', error);
+  }
+}
+
+/**
+ * Tracks section usage for analytics
+ * @param {string} sectionName - Section being accessed
+ */
+function trackSectionUsage(sectionName) {
+  try {
+    const analytics = DataManager.load('analytics', {});
+    const today = new Date().toDateString();
+    
+    if (!analytics[today]) analytics[today] = {};
+    if (!analytics[today][sectionName]) analytics[today][sectionName] = 0;
+    
+    analytics[today][sectionName]++;
+    DataManager.save('analytics', analytics);
+  } catch (error) {
+    console.error('Error tracking section usage:', error);
   }
 }
 
@@ -80,7 +233,15 @@ document.addEventListener("DOMContentLoaded", function () {
   try {
     updateDateTime();
     setInterval(updateDateTime, 1000);
+    
+    // Load all persisted data on startup
+    loadPersistedData();
+    
+    // Initialize all sections with saved data
     displayNotes();
+    
+    // Auto-save data periodically (every 30 seconds)
+    setInterval(saveAllData, 30000);
 
     // Performance optimization: preload critical sections
     const criticalElements = [
@@ -107,6 +268,113 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ===============================
+// DATA PERSISTENCE SYSTEM
+// ===============================
+
+/**
+ * Saves all application data to localStorage
+ */
+function saveAllData() {
+  try {
+    const appData = {
+      todos: tasks,
+      pomodoroSettings: {
+        workDuration,
+        shortBreak,
+        longBreak,
+        currentSession: session,
+        currentTime: current,
+        isRunning: false // Don't persist running state
+      },
+      notes: JSON.parse(localStorage.getItem('notes')) || [],
+      events: JSON.parse(localStorage.getItem('studentapp-events')) || [],
+      calendarTasks: JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [],
+      lastSaved: new Date().toISOString()
+    };
+    
+    localStorage.setItem('studentapp-data', JSON.stringify(appData));
+    console.log('Data auto-saved at', new Date().toLocaleTimeString());
+  } catch (error) {
+    console.error('Error saving data:', error);
+  }
+}
+
+/**
+ * Loads all persisted data from localStorage
+ */
+function loadPersistedData() {
+  try {
+    const savedData = localStorage.getItem('studentapp-data');
+    if (!savedData) {
+      console.log('No saved data found, starting fresh');
+      return;
+    }
+
+    const appData = JSON.parse(savedData);
+    
+    // Restore todo tasks
+    if (appData.todos) {
+      tasks = appData.todos;
+      console.log(`Loaded ${Object.keys(tasks).length} todo tasks`);
+    }
+    
+    // Restore pomodoro settings
+    if (appData.pomodoroSettings) {
+      workDuration = appData.pomodoroSettings.workDuration || 25 * 60;
+      shortBreak = appData.pomodoroSettings.shortBreak || 5 * 60;
+      longBreak = appData.pomodoroSettings.longBreak || 15 * 60;
+      session = appData.pomodoroSettings.currentSession || "Work";
+      current = appData.pomodoroSettings.currentTime || workDuration;
+      console.log('Loaded Pomodoro settings');
+    }
+    
+    console.log(`Data loaded from ${appData.lastSaved}`);
+  } catch (error) {
+    console.error('Error loading persisted data:', error);
+  }
+}
+
+/**
+ * Exports all data as JSON for backup
+ */
+function exportData() {
+  saveAllData();
+  const data = localStorage.getItem('studentapp-data');
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `studentapp-backup-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('Data exported successfully!');
+}
+
+/**
+ * Imports data from JSON backup file
+ */
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      localStorage.setItem('studentapp-data', JSON.stringify(importedData));
+      alert('Data imported successfully! Refreshing page...');
+      location.reload();
+    } catch (error) {
+      alert('Invalid backup file format!');
+      console.error('Import error:', error);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ===============================
 // TODO LIST FUNCTIONALITY
 // ===============================
 
@@ -117,6 +385,8 @@ function initializeTodoList() {
   setupTodoEvents();
   // Initialize drag and drop
   setupDragAndDrop();
+  // Load and display saved tasks
+  loadSavedTasks();
 }
 
 function setupWeeklyCalendar() {
@@ -371,6 +641,53 @@ function setupDragAndDrop() {
       e.target.classList.remove("dragging");
     });
   }
+}
+
+/**
+ * Loads and displays all saved tasks from localStorage
+ */
+function loadSavedTasks() {
+  const taskContainer = document.getElementById("task-container");
+  if (!taskContainer) return;
+
+  // Clear existing tasks in UI
+  taskContainer.innerHTML = "";
+
+  // Load tasks from storage and display them
+  Object.entries(tasks).forEach(([taskId, task]) => {
+    const taskHTML = `
+      <li class="mt-4" id="${taskId}" draggable="true" ondragstart="drag(event)">
+        <div class="flex gap-2">
+          <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
+            <div class="flex items-center">
+              <span 
+                id="check${taskId}" 
+                class="w-7 h-7 bg-white rounded-full border border-white cursor-pointer hover:border-[#36d344] flex justify-center items-center ${task.completed ? 'bg-[#36d344]' : ''}" 
+                onclick="toggleTask(${taskId})"
+              >
+                <i class="text-white fa fa-check"></i>
+              </span>
+              <strike 
+                id="strike${taskId}" 
+                class="${task.completed ? 'line-through' : 'strike_none'} text-sm ml-4 text-[#5b7a9d] font-semibold"
+              >
+                ${task.title}
+              </strike>
+            </div>
+          </div>
+          <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+            ${task.date}
+          </span>
+          <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+            ${task.time}
+          </span>
+        </div>
+      </li>
+    `;
+    taskContainer.insertAdjacentHTML("beforeend", taskHTML);
+  });
+
+  console.log(`Loaded ${Object.keys(tasks).length} saved tasks`);
 }
 
 // ===============================
