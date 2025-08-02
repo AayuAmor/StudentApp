@@ -809,6 +809,10 @@ function setupEditTaskEvents() {
         time: time12
       };
 
+      // Save to DataManager
+      const tasksArray = Object.values(tasks);
+      DataManager.save('tasks', tasksArray);
+
       // Update UI
       const strike = document.getElementById(`strike${currentEditId}`);
       strike.textContent = newTitle;
@@ -820,7 +824,6 @@ function setupEditTaskEvents() {
 
       document.getElementById("edit-task-modal").classList.add("hidden");
       currentEditId = null;
-      saveAllData(); // Save changes
     });
   }
 
@@ -833,9 +836,12 @@ function setupEditTaskEvents() {
 
       delete tasks[currentEditId];
 
+      // Save to DataManager
+      const tasksArray = Object.values(tasks);
+      DataManager.save('tasks', tasksArray);
+
       document.getElementById("edit-task-modal").classList.add("hidden");
       currentEditId = null;
-      saveAllData(); // Save changes
     });
   }
 
