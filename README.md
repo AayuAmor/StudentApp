@@ -11,7 +11,7 @@ StudentApp is built by students for students. It's a comprehensive web applicati
 ## 🚀 What's New in v2.0.0
 
 - ✅ **Complete Data Persistence**: All your data is now automatically saved and restored
-- ✅ **Advanced Analytics**: Productivity scoring and comprehensive dashboard metrics  
+- ✅ **Advanced Analytics**: Productivity scoring and comprehensive dashboard metrics
 - ✅ **Enhanced Pomodoro**: Session tracking, streaks, and statistics
 - ✅ **Smart Task Management**: Real-time updates with priority organization
 - ✅ **Professional Notes**: Timestamped notes with full CRUD operations
@@ -20,21 +20,23 @@ StudentApp is built by students for students. It's a comprehensive web applicati
 ## 📋 Features
 
 ### ✅ Completed & Live
+
 - **To-Do List**: Smart task organization with real-time persistence
-- **Pomodoro Timer**: Focus sessions with productivity analytics  
+- **Pomodoro Timer**: Focus sessions with productivity analytics
 - **Notes Management**: Professional note-taking with timestamps
 - **Event Calendar**: Full calendar functionality with event management
 - **Dashboard Analytics**: Productivity scoring and progress tracking
 - **Data Manager**: Centralized persistence across all modules
 
 ### 🔄 Roadmap Updates
+
 - [x] ~~To-Do List~~ ✅ **ENHANCED**
-- [x] ~~Pomodoro Timer~~ ✅ **ENHANCED** 
+- [x] ~~Pomodoro Timer~~ ✅ **ENHANCED**
 - [x] ~~Notes Management~~ ✅ **ENHANCED**
 - [x] ~~Event Calendar~~ ✅ **COMPLETED**
-- [ ] Timetable Planner *(in development)*
-- [ ] Academic Progress Tracker *(planned)*
-- [ ] Study Break Games *(planned)*
+- [ ] Timetable Planner _(in development)_
+- [ ] Academic Progress Tracker _(planned)_
+- [ ] Study Break Games _(planned)_
 
 ## 🛠️ Technology Stack
 
@@ -46,6 +48,7 @@ StudentApp is built by students for students. It's a comprehensive web applicati
 ## 🚀 Quick Start
 
 1. **Clone & Open**
+
    ```bash
    git clone https://github.com/AayuAmor/StudentApp.git
    cd StudentApp
@@ -60,16 +63,17 @@ StudentApp is built by students for students. It's a comprehensive web applicati
 ## 👥 Meet Team Doberman
 
 - [@Aayush](https://github.com/AayuAmor) - Lead Developer & Architecture
-- [@Saffer](https://github.com/SafferStha) - Frontend & UI/UX  
+- [@Saffer](https://github.com/SafferStha) - Frontend & UI/UX
 - [@Jenish](https://github.com/Jenish995) - Backend & Data Management
 - [@Prabin](https://github.com/Probeen001) - Testing & Documentation
 
 ## 🤝 Contributing
 
 We welcome contributions! Please feel free to:
+
 - ⭐ Star the repository
 - 🐛 Report bugs via Issues
-- 💡 Suggest new features  
+- 💡 Suggest new features
 - 🤝 Submit Pull Requests
 
 ## 🎓 Academic Project

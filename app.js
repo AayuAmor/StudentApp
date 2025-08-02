@@ -39,21 +39,21 @@ let pomodoroStats = {
   totalBreakTime: 0,
   dailyGoal: 8,
   streak: 0,
-  lastSessionDate: null
+  lastSessionDate: null,
 };
 
 /** Application settings with localStorage persistence */
 let appSettings = {
-  theme: 'default',
-  language: 'en',
+  theme: "default",
+  language: "en",
   autoSave: true,
   pomodoroSettings: {
     workDuration: 25,
     shortBreak: 5,
     longBreak: 15,
     autoStartBreaks: false,
-    soundEnabled: true
-  }
+    soundEnabled: true,
+  },
 };
 
 // ============================================================================
@@ -70,12 +70,12 @@ const DataManager = {
    * @param {any} data - Data to store
    * @returns {boolean} Success status
    */
-  save: function(key, data) {
+  save: function (key, data) {
     try {
       const serializedData = JSON.stringify({
         data: data,
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: "1.0.0",
       });
       localStorage.setItem(`studentapp_${key}`, serializedData);
       return true;
@@ -91,11 +91,11 @@ const DataManager = {
    * @param {any} defaultValue - Default value if load fails
    * @returns {any} Loaded data or default value
    */
-  load: function(key, defaultValue = null) {
+  load: function (key, defaultValue = null) {
     try {
       const serializedData = localStorage.getItem(`studentapp_${key}`);
       if (!serializedData) return defaultValue;
-      
+
       const parsedData = JSON.parse(serializedData);
       return parsedData.data || defaultValue;
     } catch (error) {
@@ -108,7 +108,7 @@ const DataManager = {
    * Removes data from localStorage
    * @param {string} key - Storage key
    */
-  remove: function(key) {
+  remove: function (key) {
     try {
       localStorage.removeItem(`studentapp_${key}`);
     } catch (error) {
@@ -120,14 +120,16 @@ const DataManager = {
    * Gets all stored data keys
    * @returns {Array} Array of storage keys
    */
-  getAllKeys: function() {
+  getAllKeys: function () {
     try {
-      return Object.keys(localStorage).filter(key => key.startsWith('studentapp_'));
+      return Object.keys(localStorage).filter((key) =>
+        key.startsWith("studentapp_")
+      );
     } catch (error) {
-      console.error('Failed to get storage keys:', error);
+      console.error("Failed to get storage keys:", error);
       return [];
     }
-  }
+  },
 };
 
 /**
@@ -151,7 +153,7 @@ function showSection(sectionName) {
   currentSection = sectionName;
 
   // Save current section to localStorage for session restoration
-  DataManager.save('currentSection', sectionName);
+  DataManager.save("currentSection", sectionName);
 
   // Initialize section-specific functionality
   switch (sectionName) {
@@ -181,31 +183,39 @@ function showSection(sectionName) {
  */
 function updateDashboardStats() {
   try {
-    const totalTasks = Object.keys(DataManager.load('tasks', {})).length;
-    const completedTasks = Object.values(DataManager.load('tasks', {})).filter(task => task.completed).length;
+    const totalTasks = Object.keys(DataManager.load("tasks", {})).length;
+    const completedTasks = Object.values(DataManager.load("tasks", {})).filter(
+      (task) => task.completed
+    ).length;
     const pendingTasks = totalTasks - completedTasks;
-    const totalNotes = (DataManager.load('notes', []) || []).length;
-    const totalEvents = (DataManager.load('studentapp-events', []) || []).length;
-    
+    const totalNotes = (DataManager.load("notes", []) || []).length;
+    const totalEvents = (DataManager.load("studentapp-events", []) || [])
+      .length;
+
     // Calculate productivity metrics
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const completionRate =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     const todaysSessions = pomodoroStats.completedSessions;
-    const productivityScore = Math.min(100, 
-      Math.round((completionRate * 0.4) + (Math.min(todaysSessions / pomodoroStats.dailyGoal, 1) * 60))
+    const productivityScore = Math.min(
+      100,
+      Math.round(
+        completionRate * 0.4 +
+          Math.min(todaysSessions / pomodoroStats.dailyGoal, 1) * 60
+      )
     );
 
     // Update stats display if elements exist
     const statsElements = {
-      'total-tasks': totalTasks,
-      'completed-tasks': completedTasks,
-      'pending-tasks': pendingTasks,
-      'total-notes': totalNotes,
-      'total-events': totalEvents,
-      'completion-rate': `${completionRate}%`,
-      'productivity-score': `${productivityScore}%`,
-      'pomodoro-sessions': todaysSessions,
-      'daily-goal': pomodoroStats.dailyGoal,
-      'current-streak': pomodoroStats.streak
+      "total-tasks": totalTasks,
+      "completed-tasks": completedTasks,
+      "pending-tasks": pendingTasks,
+      "total-notes": totalNotes,
+      "total-events": totalEvents,
+      "completion-rate": `${completionRate}%`,
+      "productivity-score": `${productivityScore}%`,
+      "pomodoro-sessions": todaysSessions,
+      "daily-goal": pomodoroStats.dailyGoal,
+      "current-streak": pomodoroStats.streak,
     };
 
     Object.entries(statsElements).forEach(([id, value]) => {
@@ -213,7 +223,7 @@ function updateDashboardStats() {
       if (element) element.textContent = value;
     });
   } catch (error) {
-    console.error('Error updating dashboard stats:', error);
+    console.error("Error updating dashboard stats:", error);
   }
 }
 
@@ -223,16 +233,16 @@ function updateDashboardStats() {
  */
 function trackSectionUsage(sectionName) {
   try {
-    const analytics = DataManager.load('analytics', {});
+    const analytics = DataManager.load("analytics", {});
     const today = new Date().toDateString();
-    
+
     if (!analytics[today]) analytics[today] = {};
     if (!analytics[today][sectionName]) analytics[today][sectionName] = 0;
-    
+
     analytics[today][sectionName]++;
-    DataManager.save('analytics', analytics);
+    DataManager.save("analytics", analytics);
   } catch (error) {
-    console.error('Error tracking section usage:', error);
+    console.error("Error tracking section usage:", error);
   }
 }
 
@@ -257,13 +267,13 @@ document.addEventListener("DOMContentLoaded", function () {
   try {
     updateDateTime();
     setInterval(updateDateTime, 1000);
-    
+
     // Load all persisted data on startup
     loadPersistedData();
-    
+
     // Initialize all sections with saved data
     displayNotes();
-    
+
     // Auto-save data periodically (every 30 seconds)
     setInterval(saveAllData, 30000);
 
@@ -308,19 +318,19 @@ function saveAllData() {
         longBreak,
         currentSession: session,
         currentTime: current,
-        isRunning: false // Don't persist running state
+        isRunning: false, // Don't persist running state
       },
       pomodoroStats,
-      notes: DataManager.load('notes') || [],
-      events: DataManager.load('studentapp-events') || [],
-      calendarTasks: DataManager.load('studentapp-calendar-tasks') || [],
-      lastSaved: new Date().toISOString()
+      notes: DataManager.load("notes") || [],
+      events: DataManager.load("studentapp-events") || [],
+      calendarTasks: DataManager.load("studentapp-calendar-tasks") || [],
+      lastSaved: new Date().toISOString(),
     };
-    
-    localStorage.setItem('studentapp-data', JSON.stringify(appData));
-    console.log('Data auto-saved at', new Date().toLocaleTimeString());
+
+    localStorage.setItem("studentapp-data", JSON.stringify(appData));
+    console.log("Data auto-saved at", new Date().toLocaleTimeString());
   } catch (error) {
-    console.error('Error saving data:', error);
+    console.error("Error saving data:", error);
   }
 }
 
@@ -329,20 +339,20 @@ function saveAllData() {
  */
 function loadPersistedData() {
   try {
-    const savedData = localStorage.getItem('studentapp-data');
+    const savedData = localStorage.getItem("studentapp-data");
     if (!savedData) {
-      console.log('No saved data found, starting fresh');
+      console.log("No saved data found, starting fresh");
       return;
     }
 
     const appData = JSON.parse(savedData);
-    
+
     // Restore todo tasks
     if (appData.todos) {
       tasks = appData.todos;
       console.log(`Loaded ${Object.keys(tasks).length} todo tasks`);
     }
-    
+
     // Restore pomodoro settings
     if (appData.pomodoroSettings) {
       workDuration = appData.pomodoroSettings.workDuration || 25 * 60;
@@ -350,18 +360,18 @@ function loadPersistedData() {
       longBreak = appData.pomodoroSettings.longBreak || 15 * 60;
       session = appData.pomodoroSettings.currentSession || "Work";
       current = appData.pomodoroSettings.currentTime || workDuration;
-      console.log('Loaded Pomodoro settings');
+      console.log("Loaded Pomodoro settings");
     }
-    
+
     // Restore pomodoro statistics
     if (appData.pomodoroStats) {
       pomodoroStats = { ...pomodoroStats, ...appData.pomodoroStats };
-      console.log('Loaded Pomodoro statistics');
+      console.log("Loaded Pomodoro statistics");
     }
-    
+
     console.log(`Data loaded from ${appData.lastSaved}`);
   } catch (error) {
-    console.error('Error loading persisted data:', error);
+    console.error("Error loading persisted data:", error);
   }
 }
 
@@ -370,17 +380,19 @@ function loadPersistedData() {
  */
 function exportData() {
   saveAllData();
-  const data = localStorage.getItem('studentapp-data');
-  const blob = new Blob([data], { type: 'application/json' });
+  const data = localStorage.getItem("studentapp-data");
+  const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `studentapp-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `studentapp-backup-${
+    new Date().toISOString().split("T")[0]
+  }.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  alert('Data exported successfully!');
+  alert("Data exported successfully!");
 }
 
 /**
@@ -389,17 +401,17 @@ function exportData() {
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
       const importedData = JSON.parse(e.target.result);
-      localStorage.setItem('studentapp-data', JSON.stringify(importedData));
-      alert('Data imported successfully! Refreshing page...');
+      localStorage.setItem("studentapp-data", JSON.stringify(importedData));
+      alert("Data imported successfully! Refreshing page...");
       location.reload();
     } catch (error) {
-      alert('Invalid backup file format!');
-      console.error('Import error:', error);
+      alert("Invalid backup file format!");
+      console.error("Import error:", error);
     }
   };
   reader.readAsText(file);
@@ -622,31 +634,31 @@ function addTask(title, time24) {
     date: formattedDate,
     selectedDate: selectedDate,
     completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
-  
+
   // Save to localStorage using DataManager
-  DataManager.save('tasks', tasks);
-  
+  DataManager.save("tasks", tasks);
+
   // Update task statistics
   updateTaskStats();
 }
 
 function deleteTask(taskId) {
-  if (confirm('Are you sure you want to delete this task?')) {
+  if (confirm("Are you sure you want to delete this task?")) {
     // Remove from DOM
     const taskElement = document.getElementById(taskId);
     if (taskElement) {
       taskElement.remove();
     }
-    
+
     // Remove from global tasks object
     delete tasks[taskId];
-    
+
     // Remove from localStorage
-    DataManager.remove('tasks');
-    DataManager.save('tasks', tasks);
-    
+    DataManager.remove("tasks");
+    DataManager.save("tasks", tasks);
+
     // Update statistics
     updateTaskStats();
   }
@@ -664,12 +676,12 @@ function toggleTask(id) {
 
   if (tasks[id]) {
     tasks[id].completed = !isDone;
-    
+
     // Save updated tasks to DataManager
     const tasksArray = Object.values(tasks);
-    DataManager.save('tasks', tasksArray);
-    
-    console.log(`Task ${id} ${isDone ? 'completed' : 'uncompleted'}`);
+    DataManager.save("tasks", tasksArray);
+
+    console.log(`Task ${id} ${isDone ? "completed" : "uncompleted"}`);
   }
 }
 
@@ -729,11 +741,11 @@ function loadSavedTasks() {
   taskContainer.innerHTML = "";
 
   // Load tasks from DataManager
-  const savedTasks = DataManager.load('tasks');
+  const savedTasks = DataManager.load("tasks");
   if (savedTasks && Array.isArray(savedTasks)) {
     // Convert array back to object format for compatibility
     tasks = {};
-    savedTasks.forEach(task => {
+    savedTasks.forEach((task) => {
       tasks[task.id] = task;
     });
   }
@@ -747,14 +759,18 @@ function loadSavedTasks() {
             <div class="flex items-center">
               <span 
                 id="check${taskId}" 
-                class="w-7 h-7 bg-white rounded-full border border-white cursor-pointer hover:border-[#36d344] flex justify-center items-center ${task.completed ? 'bg-[#36d344]' : ''}" 
+                class="w-7 h-7 bg-white rounded-full border border-white cursor-pointer hover:border-[#36d344] flex justify-center items-center ${
+                  task.completed ? "bg-[#36d344]" : ""
+                }" 
                 onclick="toggleTask(${taskId})"
               >
                 <i class="text-white fa fa-check"></i>
               </span>
               <strike 
                 id="strike${taskId}" 
-                class="${task.completed ? 'line-through' : 'strike_none'} text-sm ml-4 text-[#5b7a9d] font-semibold"
+                class="${
+                  task.completed ? "line-through" : "strike_none"
+                } text-sm ml-4 text-[#5b7a9d] font-semibold"
               >
                 ${task.title}
               </strike>
@@ -786,12 +802,22 @@ function editTask(id) {
   if (!task) return;
 
   document.getElementById("edit-title").value = task.title;
-  
+
   // Convert date back to YYYY-MM-DD format
   const [weekday, day, month] = task.date.split(" ");
   const months = {
-    Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
-    Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12",
   };
   const year = new Date().getFullYear();
   const dateValue = `${year}-${months[month]}-${day.padStart(2, "0")}`;
@@ -802,7 +828,10 @@ function editTask(id) {
   let [hour, minute] = timeStr.split(":").map(Number);
   if (ampm === "PM" && hour !== 12) hour += 12;
   if (ampm === "AM" && hour === 12) hour = 0;
-  document.getElementById("edit-time").value = `${String(hour).padStart(2, "0")}:${minute}`;
+  document.getElementById("edit-time").value = `${String(hour).padStart(
+    2,
+    "0"
+  )}:${minute}`;
 
   document.getElementById("edit-task-modal").classList.remove("hidden");
 }
@@ -843,12 +872,12 @@ function setupEditTaskEvents() {
         ...tasks[currentEditId],
         title: newTitle,
         date: formattedDate,
-        time: time12
+        time: time12,
       };
 
       // Save to DataManager
       const tasksArray = Object.values(tasks);
-      DataManager.save('tasks', tasksArray);
+      DataManager.save("tasks", tasksArray);
 
       // Update UI
       const strike = document.getElementById(`strike${currentEditId}`);
@@ -875,7 +904,7 @@ function setupEditTaskEvents() {
 
       // Save to DataManager
       const tasksArray = Object.values(tasks);
-      DataManager.save('tasks', tasksArray);
+      DataManager.save("tasks", tasksArray);
 
       document.getElementById("edit-task-modal").classList.add("hidden");
       currentEditId = null;
@@ -955,10 +984,10 @@ function startTimer() {
     if (current === 0) {
       clearInterval(interval);
       isRunning = false;
-      
+
       // Track session completion
       completeSession();
-      
+
       if (session === "Work") {
         session = "Short Break";
         current = shortBreak;
@@ -984,17 +1013,21 @@ function pauseTimer() {
 
 function completeSession() {
   const today = new Date().toDateString();
-  const sessionDuration = session === "Work" ? workDuration : 
-                         session === "Short Break" ? shortBreak : longBreak;
-  
+  const sessionDuration =
+    session === "Work"
+      ? workDuration
+      : session === "Short Break"
+      ? shortBreak
+      : longBreak;
+
   pomodoroStats.completedSessions++;
-  
+
   if (session === "Work") {
     pomodoroStats.totalWorkTime += sessionDuration;
   } else {
     pomodoroStats.totalBreakTime += sessionDuration;
   }
-  
+
   // Update streak
   if (pomodoroStats.lastSessionDate === today) {
     // Same day, maintain streak
@@ -1002,20 +1035,22 @@ function completeSession() {
     // New day, reset or increment streak
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (pomodoroStats.lastSessionDate === yesterday.toDateString()) {
       pomodoroStats.streak++;
     } else {
       pomodoroStats.streak = 1;
     }
   }
-  
+
   pomodoroStats.lastSessionDate = today;
-  
+
   // Save updated stats
   saveAllData();
-  
-  console.log(`Session completed! Total sessions: ${pomodoroStats.completedSessions}`);
+
+  console.log(
+    `Session completed! Total sessions: ${pomodoroStats.completedSessions}`
+  );
 }
 
 function resetTimer() {
@@ -1127,10 +1162,10 @@ function createNote() {
       updatedAt: timestamp,
     };
 
-    const existingNotes = DataManager.load('notes') || [];
+    const existingNotes = DataManager.load("notes") || [];
     existingNotes.push(note);
 
-    DataManager.save('notes', existingNotes);
+    DataManager.save("notes", existingNotes);
     popupContainer.remove();
     displayNotes();
   }
@@ -1142,7 +1177,7 @@ function displayNotes() {
 
   notesList.innerHTML = "";
 
-  const notes = DataManager.load('notes') || [];
+  const notes = DataManager.load("notes") || [];
 
   notes.forEach((note) => {
     const listItem = document.createElement("div");
@@ -1168,7 +1203,7 @@ function displayNotes() {
 }
 
 function editNote(noteId) {
-  const notes = DataManager.load('notes') || [];
+  const notes = DataManager.load("notes") || [];
   const noteToEdit = notes.find((note) => note.id == noteId);
   const noteText = noteToEdit ? noteToEdit.text : "";
   const updatedAt = noteToEdit
@@ -1211,7 +1246,7 @@ function updateNote() {
 
   if (noteText !== "") {
     const noteId = editingPopup.getAttribute("data-note-id");
-    let notes = DataManager.load('notes') || [];
+    let notes = DataManager.load("notes") || [];
 
     const updatedNotes = notes.map((note) => {
       if (note.id == noteId) {
@@ -1224,7 +1259,7 @@ function updateNote() {
       return note;
     });
 
-    DataManager.save('notes', updatedNotes);
+    DataManager.save("notes", updatedNotes);
     editingPopup.remove();
     displayNotes();
   }
@@ -1232,10 +1267,10 @@ function updateNote() {
 
 function deleteNote(noteId) {
   if (confirm("Are you sure you want to delete this note?")) {
-    let notes = DataManager.load('notes') || [];
+    let notes = DataManager.load("notes") || [];
     notes = notes.filter((note) => note.id !== noteId);
 
-    DataManager.save('notes', notes);
+    DataManager.save("notes", notes);
     displayNotes();
   }
 }
@@ -1286,9 +1321,9 @@ function addEvent() {
     createdAt: new Date().toISOString(),
   };
 
-  const events = DataManager.load('studentapp-events') || [];
+  const events = DataManager.load("studentapp-events") || [];
   events.push(event);
-  DataManager.save('studentapp-events', events);
+  DataManager.save("studentapp-events", events);
 
   // Clear form
   document.getElementById("eventDate").value = "";
@@ -1303,7 +1338,7 @@ function displayEvents() {
 
   eventList.innerHTML = "";
 
-  const events = DataManager.load('studentapp-events') || [];
+  const events = DataManager.load("studentapp-events") || [];
 
   // Sort events by date
   events.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1329,9 +1364,9 @@ function displayEvents() {
 
 function deleteEvent(eventId) {
   if (confirm("Are you sure you want to delete this event?")) {
-    const events = DataManager.load('studentapp-events') || [];
+    const events = DataManager.load("studentapp-events") || [];
     const filteredEvents = events.filter((e) => e.id !== eventId);
-    DataManager.save('studentapp-events', filteredEvents);
+    DataManager.save("studentapp-events", filteredEvents);
     displayEvents();
   }
 }
@@ -1353,9 +1388,9 @@ function addCalendarTask() {
     createdAt: new Date().toISOString(),
   };
 
-  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
+  const calendarTasks = DataManager.load("studentapp-calendar-tasks") || [];
   calendarTasks.push(task);
-  DataManager.save('studentapp-calendar-tasks', calendarTasks);
+  DataManager.save("studentapp-calendar-tasks", calendarTasks);
 
   // Clear form
   document.getElementById("taskDate").value = "";
@@ -1370,7 +1405,7 @@ function displayCalendarTasks() {
 
   taskList.innerHTML = "";
 
-  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
+  const calendarTasks = DataManager.load("studentapp-calendar-tasks") || [];
 
   // Sort tasks by date
   calendarTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -1409,21 +1444,21 @@ function displayCalendarTasks() {
 }
 
 function toggleCalendarTask(taskId) {
-  const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
+  const calendarTasks = DataManager.load("studentapp-calendar-tasks") || [];
   const taskIndex = calendarTasks.findIndex((t) => t.id === taskId);
 
   if (taskIndex !== -1) {
     calendarTasks[taskIndex].completed = !calendarTasks[taskIndex].completed;
-    DataManager.save('studentapp-calendar-tasks', calendarTasks);
+    DataManager.save("studentapp-calendar-tasks", calendarTasks);
     displayCalendarTasks();
   }
 }
 
 function deleteCalendarTask(taskId) {
   if (confirm("Are you sure you want to delete this task?")) {
-    const calendarTasks = DataManager.load('studentapp-calendar-tasks') || [];
+    const calendarTasks = DataManager.load("studentapp-calendar-tasks") || [];
     const filteredTasks = calendarTasks.filter((t) => t.id !== taskId);
-    DataManager.save('studentapp-calendar-tasks', filteredTasks);
+    DataManager.save("studentapp-calendar-tasks", filteredTasks);
     displayCalendarTasks();
   }
 }
