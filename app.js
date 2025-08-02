@@ -32,6 +32,16 @@ let interval = null;
 let isRunning = false;
 let session = "Work";
 
+// Pomodoro session statistics
+let pomodoroStats = {
+  completedSessions: 0,
+  totalWorkTime: 0,
+  totalBreakTime: 0,
+  dailyGoal: 8,
+  streak: 0,
+  lastSessionDate: null
+};
+
 /** Application settings with localStorage persistence */
 let appSettings = {
   theme: 'default',
@@ -286,6 +296,7 @@ function saveAllData() {
         currentTime: current,
         isRunning: false // Don't persist running state
       },
+      pomodoroStats,
       notes: DataManager.load('notes') || [],
       events: DataManager.load('studentapp-events') || [],
       calendarTasks: DataManager.load('studentapp-calendar-tasks') || [],
@@ -326,6 +337,12 @@ function loadPersistedData() {
       session = appData.pomodoroSettings.currentSession || "Work";
       current = appData.pomodoroSettings.currentTime || workDuration;
       console.log('Loaded Pomodoro settings');
+    }
+    
+    // Restore pomodoro statistics
+    if (appData.pomodoroStats) {
+      pomodoroStats = { ...pomodoroStats, ...appData.pomodoroStats };
+      console.log('Loaded Pomodoro statistics');
     }
     
     console.log(`Data loaded from ${appData.lastSaved}`);
@@ -918,6 +935,10 @@ function startTimer() {
     if (current === 0) {
       clearInterval(interval);
       isRunning = false;
+      
+      // Track session completion
+      completeSession();
+      
       if (session === "Work") {
         session = "Short Break";
         current = shortBreak;
@@ -939,6 +960,42 @@ function pauseTimer() {
   clearInterval(interval);
   isRunning = false;
   updateDisplay();
+}
+
+function completeSession() {
+  const today = new Date().toDateString();
+  const sessionDuration = session === "Work" ? workDuration : 
+                         session === "Short Break" ? shortBreak : longBreak;
+  
+  pomodoroStats.completedSessions++;
+  
+  if (session === "Work") {
+    pomodoroStats.totalWorkTime += sessionDuration;
+  } else {
+    pomodoroStats.totalBreakTime += sessionDuration;
+  }
+  
+  // Update streak
+  if (pomodoroStats.lastSessionDate === today) {
+    // Same day, maintain streak
+  } else if (pomodoroStats.lastSessionDate !== today) {
+    // New day, reset or increment streak
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (pomodoroStats.lastSessionDate === yesterday.toDateString()) {
+      pomodoroStats.streak++;
+    } else {
+      pomodoroStats.streak = 1;
+    }
+  }
+  
+  pomodoroStats.lastSessionDate = today;
+  
+  // Save updated stats
+  saveAllData();
+  
+  console.log(`Session completed! Total sessions: ${pomodoroStats.completedSessions}`);
 }
 
 function resetTimer() {
