@@ -46,6 +46,8 @@ function showSection(sectionName) {
         initializePomodoro();
     } else if (sectionName === 'notes') {
         displayNotes();
+    } else if (sectionName === 'calendar') {
+        initializeCalendar();
     }
 }
 
@@ -532,6 +534,182 @@ function deleteNote(noteId) {
 
         localStorage.setItem('notes', JSON.stringify(notes));
         displayNotes();
+    }
+}
+
+// ===============================
+// CALENDAR FUNCTIONALITY
+// ===============================
+
+function initializeCalendar() {
+    setupEventForm();
+    setupTaskForm();
+    displayEvents();
+    displayCalendarTasks();
+}
+
+function setupEventForm() {
+    const eventForm = document.getElementById('eventForm');
+    if (!eventForm) return;
+    
+    eventForm.onsubmit = function(e) {
+        e.preventDefault();
+        addEvent();
+    };
+}
+
+function setupTaskForm() {
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    if (!addTaskBtn) return;
+    
+    addTaskBtn.onclick = function() {
+        addCalendarTask();
+    };
+}
+
+function addEvent() {
+    const eventDate = document.getElementById('eventDate').value;
+    const eventTitle = document.getElementById('eventTitle').value.trim();
+    
+    if (!eventDate || !eventTitle) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    const event = {
+        id: Date.now(),
+        date: eventDate,
+        title: eventTitle,
+        createdAt: new Date().toISOString()
+    };
+    
+    const events = JSON.parse(localStorage.getItem('studentapp-events')) || [];
+    events.push(event);
+    localStorage.setItem('studentapp-events', JSON.stringify(events));
+    
+    // Clear form
+    document.getElementById('eventDate').value = '';
+    document.getElementById('eventTitle').value = '';
+    
+    displayEvents();
+}
+
+function displayEvents() {
+    const eventList = document.getElementById('eventList');
+    if (!eventList) return;
+    
+    eventList.innerHTML = '';
+    
+    const events = JSON.parse(localStorage.getItem('studentapp-events')) || [];
+    
+    // Sort events by date
+    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    events.forEach(event => {
+        const eventDate = new Date(event.date);
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center bg-blue-50 p-3 rounded';
+        li.innerHTML = `
+            <div>
+                <div class="font-medium">${event.title}</div>
+                <div class="text-sm text-gray-600">${eventDate.toLocaleDateString()}</div>
+            </div>
+            <button onclick="deleteEvent(${event.id})" class="text-red-500 hover:text-red-700">
+                <i class="fas fa-trash text-sm"></i>
+            </button>
+        `;
+        eventList.appendChild(li);
+    });
+}
+
+function deleteEvent(eventId) {
+    if (confirm('Are you sure you want to delete this event?')) {
+        const events = JSON.parse(localStorage.getItem('studentapp-events')) || [];
+        const filteredEvents = events.filter(e => e.id !== eventId);
+        localStorage.setItem('studentapp-events', JSON.stringify(filteredEvents));
+        displayEvents();
+    }
+}
+
+function addCalendarTask() {
+    const taskDate = document.getElementById('taskDate').value;
+    const taskInput = document.getElementById('taskInput').value.trim();
+    
+    if (!taskDate || !taskInput) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    const task = {
+        id: Date.now(),
+        date: taskDate,
+        text: taskInput,
+        completed: false,
+        createdAt: new Date().toISOString()
+    };
+    
+    const calendarTasks = JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [];
+    calendarTasks.push(task);
+    localStorage.setItem('studentapp-calendar-tasks', JSON.stringify(calendarTasks));
+    
+    // Clear form
+    document.getElementById('taskDate').value = '';
+    document.getElementById('taskInput').value = '';
+    
+    displayCalendarTasks();
+}
+
+function displayCalendarTasks() {
+    const taskList = document.getElementById('taskList');
+    if (!taskList) return;
+    
+    taskList.innerHTML = '';
+    
+    const calendarTasks = JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [];
+    
+    // Sort tasks by date
+    calendarTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    calendarTasks.forEach(task => {
+        const taskDate = new Date(task.date);
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center bg-green-50 p-3 rounded';
+        li.innerHTML = `
+            <div class="flex items-center">
+                <div class="w-4 h-4 rounded border-2 border-gray-300 flex items-center justify-center cursor-pointer mr-3 ${task.completed ? 'bg-green-500 border-green-500' : ''}" 
+                     onclick="toggleCalendarTask(${task.id})">
+                    ${task.completed ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                </div>
+                <div>
+                    <div class="font-medium ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</div>
+                    <div class="text-sm text-gray-600">${taskDate.toLocaleDateString()}</div>
+                </div>
+            </div>
+            <button onclick="deleteCalendarTask(${task.id})" class="text-red-500 hover:text-red-700">
+                <i class="fas fa-trash text-sm"></i>
+            </button>
+        `;
+        taskList.appendChild(li);
+    });
+}
+
+function toggleCalendarTask(taskId) {
+    const calendarTasks = JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [];
+    const taskIndex = calendarTasks.findIndex(t => t.id === taskId);
+    
+    if (taskIndex !== -1) {
+        calendarTasks[taskIndex].completed = !calendarTasks[taskIndex].completed;
+        localStorage.setItem('studentapp-calendar-tasks', JSON.stringify(calendarTasks));
+        displayCalendarTasks();
+    }
+}
+
+function deleteCalendarTask(taskId) {
+    if (confirm('Are you sure you want to delete this task?')) {
+        const calendarTasks = JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [];
+        const filteredTasks = calendarTasks.filter(t => t.id !== taskId);
+        localStorage.setItem('studentapp-calendar-tasks', JSON.stringify(filteredTasks));
+        displayCalendarTasks();
     }
 }
 
