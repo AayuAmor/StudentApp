@@ -35,7 +35,7 @@ function showSection(sectionName) {
         initializeTodoList();
     }
 }
-}
+
 
 /**
  * Real-time clock functionality
@@ -120,10 +120,51 @@ function setupWeeklyCalendar() {
 
 function setupTodoEvents() {
     const addTaskBtn = document.getElementById("add-task-btn");
+    const cancelTask = document.getElementById("cancel-task");
+    const saveTask = document.getElementById("save-task");
+
     if (addTaskBtn) {
         addTaskBtn.addEventListener("click", () => {
             document.getElementById("task-modal").classList.remove("hidden");
             populateDayDropdown();
+        });
+    }
+
+    if (cancelTask) {
+        cancelTask.addEventListener("click", () => {
+            document.getElementById("task-modal").classList.add("hidden");
+            document.getElementById("task-title").value = "";
+            document.getElementById("task-time").value = "";
+        });
+    }
+
+    if (saveTask) {
+        saveTask.addEventListener("click", () => {
+            const title = document.getElementById("task-title").value;
+            const date = document.getElementById("task-day").value;
+            const time = document.getElementById("task-time").value;
+
+            if (!title || !date || !time) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            if (date !== "future") {
+                const selectedDate = new Date(date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+
+                if (selectedDate < today) {
+                    alert("Cannot set a task in the past.");
+                    return;
+                }
+            }
+
+            addTask(title, time);
+            document.getElementById("task-modal").classList.add("hidden");
+            document.getElementById("task-title").value = "";
+            document.getElementById("task-time").value = "";
         });
     }
 }
@@ -154,5 +195,83 @@ function populateDayDropdown() {
     futureOption.value = "future";
     futureOption.textContent = "Select Future Date...";
     dropdown.appendChild(futureOption);
+}
+
+function addTask(title, time24) {
+    const taskId = Date.now();
+    const selectedDate = document.getElementById("task-day").value;
+
+    // Convert 24-hour to 12-hour format
+    const [hour, minute] = time24.split(":");
+    let hour12 = parseInt(hour, 10);
+    const ampm = hour12 >= 12 ? "PM" : "AM";
+    hour12 = hour12 % 12 || 12;
+    const time12 = `${hour12}:${minute} ${ampm}`;
+
+    // Format date
+    const dateObj = new Date(selectedDate);
+    const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+    const day = dateObj.getDate();
+    const month = dateObj.toLocaleDateString("en-US", { month: "short" });
+    const formattedDate = `${weekday} ${day} ${month}`;
+
+    const taskHTML = `
+        <li class="mt-4" id="${taskId}" draggable="true" ondragstart="drag(event)">
+            <div class="flex gap-2">
+                <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
+                    <div class="flex items-center">
+                        <span 
+                            id="check${taskId}" 
+                            class="w-7 h-7 bg-white rounded-full border border-white cursor-pointer hover:border-[#36d344] flex justify-center items-center" 
+                            onclick="toggleTask(${taskId})"
+                        >
+                            <i class="text-white fa fa-check"></i>
+                        </span>
+                        <strike 
+                            id="strike${taskId}" 
+                            class="strike_none text-sm ml-4 text-[#5b7a9d] font-semibold"
+                        >
+                            ${title}
+                        </strike>
+                    </div>
+                </div>
+                <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+                    ${formattedDate}
+                </span>
+                <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
+                    ${time12}
+                </span>
+            </div>
+        </li>
+    `;
+
+    document.getElementById("task-container").insertAdjacentHTML("beforeend", taskHTML);
+    
+    tasks[taskId] = {
+        title,
+        time: time12,
+        date: formattedDate,
+        completed: false
+    };
+}
+
+function toggleTask(id) {
+    const strike = document.getElementById(`strike${id}`);
+    const check = document.getElementById(`check${id}`);
+
+    const isDone = strike.classList.contains("strike_none");
+
+    strike.classList.toggle("strike_none");
+    strike.classList.toggle("line-through");
+    check.classList.toggle("bg-[#36d344]");
+
+    if (tasks[id]) {
+        tasks[id].completed = !isDone;
+    }
+}
+
+function drag(event) {
+    draggedItem = event.target;
+    event.target.classList.add("dragging");
 }
 
