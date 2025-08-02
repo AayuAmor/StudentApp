@@ -691,7 +691,17 @@ function loadSavedTasks() {
   // Clear existing tasks in UI
   taskContainer.innerHTML = "";
 
-  // Load tasks from storage and display them
+  // Load tasks from DataManager
+  const savedTasks = DataManager.load('tasks');
+  if (savedTasks && Array.isArray(savedTasks)) {
+    // Convert array back to object format for compatibility
+    tasks = {};
+    savedTasks.forEach(task => {
+      tasks[task.id] = task;
+    });
+  }
+
+  // Display loaded tasks
   Object.entries(tasks).forEach(([taskId, task]) => {
     const taskHTML = `
       <li class="mt-4" id="${taskId}" draggable="true" ondragstart="drag(event)">
