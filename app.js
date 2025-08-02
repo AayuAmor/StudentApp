@@ -493,6 +493,9 @@ function setupTodoEvents() {
       document.getElementById("task-time").value = "";
     });
   }
+
+  // Setup edit task modal events
+  setupEditTaskEvents();
 }
 
 function populateDayDropdown() {
@@ -544,7 +547,7 @@ function addTask(title, time24) {
   const taskHTML = `
         <li class="mt-4" id="${taskId}" draggable="true" ondragstart="drag(event)">
             <div class="flex gap-2">
-                <div class="w-7/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
+                <div class="w-6/12 h-12 bg-[#e0ebff] rounded-[7px] flex items-center px-3 justify-between">
                     <div class="flex items-center">
                         <span 
                             id="check${taskId}" 
@@ -567,6 +570,10 @@ function addTask(title, time24) {
                 <span class="w-1/6 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center text-xs text-[#5b7a9d] font-semibold">
                     ${time12}
                 </span>
+                <div class="w-1/12 h-12 bg-[#e0ebff] rounded-[7px] flex justify-center items-center gap-1">
+                    <button class="text-blue-600 hover:text-blue-800 text-sm" onclick="editTask('${taskId}')">✏️</button>
+                    <button class="text-red-600 hover:text-red-800 text-sm" onclick="deleteTask('${taskId}')">🗑️</button>
+                </div>
             </div>
         </li>
     `;
@@ -575,12 +582,43 @@ function addTask(title, time24) {
     .getElementById("task-container")
     .insertAdjacentHTML("beforeend", taskHTML);
 
+  // Store task in global tasks object and DataManager
   tasks[taskId] = {
+    id: taskId,
     title,
     time: time12,
+    time24: time24,
     date: formattedDate,
+    selectedDate: selectedDate,
     completed: false,
+    createdAt: new Date().toISOString()
   };
+  
+  // Save to localStorage using DataManager
+  DataManager.save('tasks', tasks);
+  
+  // Update task statistics
+  updateTaskStats();
+}
+
+function deleteTask(taskId) {
+  if (confirm('Are you sure you want to delete this task?')) {
+    // Remove from DOM
+    const taskElement = document.getElementById(taskId);
+    if (taskElement) {
+      taskElement.remove();
+    }
+    
+    // Remove from global tasks object
+    delete tasks[taskId];
+    
+    // Remove from localStorage
+    DataManager.remove('tasks');
+    DataManager.save('tasks', tasks);
+    
+    // Update statistics
+    updateTaskStats();
+  }
 }
 
 function toggleTask(id) {
@@ -688,6 +726,115 @@ function loadSavedTasks() {
   });
 
   console.log(`Loaded ${Object.keys(tasks).length} saved tasks`);
+}
+
+/**
+ * Task editing functionality
+ */
+let currentEditId = null;
+
+function editTask(id) {
+  currentEditId = id;
+  const task = tasks[id];
+  if (!task) return;
+
+  document.getElementById("edit-title").value = task.title;
+  
+  // Convert date back to YYYY-MM-DD format
+  const [weekday, day, month] = task.date.split(" ");
+  const months = {
+    Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+    Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+  };
+  const year = new Date().getFullYear();
+  const dateValue = `${year}-${months[month]}-${day.padStart(2, "0")}`;
+  document.getElementById("edit-date").value = dateValue;
+
+  // Convert time back to 24-hour format
+  const [timeStr, ampm] = task.time.split(" ");
+  let [hour, minute] = timeStr.split(":").map(Number);
+  if (ampm === "PM" && hour !== 12) hour += 12;
+  if (ampm === "AM" && hour === 12) hour = 0;
+  document.getElementById("edit-time").value = `${String(hour).padStart(2, "0")}:${minute}`;
+
+  document.getElementById("edit-task-modal").classList.remove("hidden");
+}
+
+function setupEditTaskEvents() {
+  const updateBtn = document.getElementById("update-task-btn");
+  const deleteBtn = document.getElementById("delete-task-btn");
+  const cancelBtn = document.getElementById("cancel-edit-btn");
+
+  if (updateBtn) {
+    updateBtn.addEventListener("click", () => {
+      if (!currentEditId || !tasks[currentEditId]) return;
+
+      const newTitle = document.getElementById("edit-title").value.trim();
+      const newDate = document.getElementById("edit-date").value;
+      const newTime = document.getElementById("edit-time").value;
+
+      if (!newTitle || !newDate || !newTime) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      // Convert time to 12-hour format
+      let [hour, minute] = newTime.split(":").map(Number);
+      const ampm = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12 || 12;
+      const time12 = `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+
+      // Format date
+      const d = new Date(newDate);
+      const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+      const day = d.getDate();
+      const month = d.toLocaleDateString("en-US", { month: "short" });
+      const formattedDate = `${weekday} ${day} ${month}`;
+
+      // Update task data
+      tasks[currentEditId] = {
+        ...tasks[currentEditId],
+        title: newTitle,
+        date: formattedDate,
+        time: time12
+      };
+
+      // Update UI
+      const strike = document.getElementById(`strike${currentEditId}`);
+      strike.textContent = newTitle;
+
+      const parent = document.getElementById(currentEditId);
+      const spans = parent.querySelectorAll("span");
+      spans[1].textContent = formattedDate;
+      spans[2].textContent = time12;
+
+      document.getElementById("edit-task-modal").classList.add("hidden");
+      currentEditId = null;
+      saveAllData(); // Save changes
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", () => {
+      if (!currentEditId) return;
+
+      const taskEl = document.getElementById(currentEditId);
+      if (taskEl) taskEl.remove();
+
+      delete tasks[currentEditId];
+
+      document.getElementById("edit-task-modal").classList.add("hidden");
+      currentEditId = null;
+      saveAllData(); // Save changes
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      document.getElementById("edit-task-modal").classList.add("hidden");
+      currentEditId = null;
+    });
+  }
 }
 
 // ===============================
