@@ -286,7 +286,7 @@ function saveAllData() {
         currentTime: current,
         isRunning: false // Don't persist running state
       },
-      notes: JSON.parse(localStorage.getItem('notes')) || [],
+      notes: DataManager.load('notes') || [],
       events: JSON.parse(localStorage.getItem('studentapp-events')) || [],
       calendarTasks: JSON.parse(localStorage.getItem('studentapp-calendar-tasks')) || [],
       lastSaved: new Date().toISOString()
@@ -1050,10 +1050,10 @@ function createNote() {
       updatedAt: timestamp,
     };
 
-    const existingNotes = JSON.parse(localStorage.getItem("notes")) || [];
+    const existingNotes = DataManager.load('notes') || [];
     existingNotes.push(note);
 
-    localStorage.setItem("notes", JSON.stringify(existingNotes));
+    DataManager.save('notes', existingNotes);
     popupContainer.remove();
     displayNotes();
   }
@@ -1065,7 +1065,7 @@ function displayNotes() {
 
   notesList.innerHTML = "";
 
-  const notes = JSON.parse(localStorage.getItem("notes")) || [];
+  const notes = DataManager.load('notes') || [];
 
   notes.forEach((note) => {
     const listItem = document.createElement("div");
@@ -1091,7 +1091,7 @@ function displayNotes() {
 }
 
 function editNote(noteId) {
-  const notes = JSON.parse(localStorage.getItem("notes")) || [];
+  const notes = DataManager.load('notes') || [];
   const noteToEdit = notes.find((note) => note.id == noteId);
   const noteText = noteToEdit ? noteToEdit.text : "";
   const updatedAt = noteToEdit
@@ -1134,7 +1134,7 @@ function updateNote() {
 
   if (noteText !== "") {
     const noteId = editingPopup.getAttribute("data-note-id");
-    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let notes = DataManager.load('notes') || [];
 
     const updatedNotes = notes.map((note) => {
       if (note.id == noteId) {
@@ -1147,7 +1147,7 @@ function updateNote() {
       return note;
     });
 
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    DataManager.save('notes', updatedNotes);
     editingPopup.remove();
     displayNotes();
   }
@@ -1155,10 +1155,10 @@ function updateNote() {
 
 function deleteNote(noteId) {
   if (confirm("Are you sure you want to delete this note?")) {
-    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let notes = DataManager.load('notes') || [];
     notes = notes.filter((note) => note.id !== noteId);
 
-    localStorage.setItem("notes", JSON.stringify(notes));
+    DataManager.save('notes', notes);
     displayNotes();
   }
 }
