@@ -250,10 +250,10 @@ function trackSectionUsage(sectionName) {
 function updateDateTime() {
   const now = new Date();
   
-  // Format time as HH:MM:SS
+  // Format time as 12-hour format with AM/PM
   const timeString = now.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
+    hour12: true,
+    hour: 'numeric',
     minute: '2-digit',
     second: '2-digit'
   });
