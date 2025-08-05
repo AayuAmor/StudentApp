@@ -246,18 +246,33 @@ function trackSectionUsage(sectionName) {
   }
 }
 
-/**
- * Real-time clock functionality
- */
+// Real-time clock functionality
 function updateDateTime() {
   const now = new Date();
-  const timeString = now.toLocaleTimeString();
-  const dateString = now.toDateString();
-
-  // Update header display
-  document.getElementById("current-time").textContent = timeString;
-  document.getElementById("current-date").textContent = dateString;
+  
+  // Format time as HH:MM:SS
+  const timeString = now.toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  
+  // Format date as "Weekday, Month Day, Year"
+  const dateString = now.toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit'
+  });
+  
+  document.getElementById('current-time').textContent = timeString;
+  document.getElementById('current-date').textContent = dateString;
 }
+
+// Call updateDateTime immediately and then every second
+updateDateTime();
+setInterval(updateDateTime, 1000);
 
 /**
  * Application initialization - sets up core functionality and event listeners
