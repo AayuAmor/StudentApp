@@ -494,106 +494,92 @@
         <!-- Pomodoro Timer Section -->
         <section id="pomodoro-section" class="content-section">
           <div class="flex justify-center">
-            <div
-              class="timer-container text-white p-10 max-w-md w-full text-center"
-            >
-              <h2 class="text-3xl font-bold mb-8">Pomodoro Timer</h2>
+            <div class="bg-white rounded-xl p-8 shadow-lg max-w-md w-full">
+              <h2 class="text-2xl font-bold text-center mb-6">Pomodoro Timer 🍅</h2>
 
               <button
                 id="edit-time-btn"
-                class="bg-blue-600 text-white px-4 py-2 rounded mb-4"
+                class="w-full bg-indigo-600 text-white px-4 py-2 rounded mb-6 hover:bg-indigo-700"
                 onclick="toggleEditTime()"
               >
                 Edit Time
               </button>
 
-              <div
-                class="bg-gray-700 p-4 rounded-lg mb-6"
-                id="set-time-panel"
-                style="display: none"
-              >
-                <div class="space-y-4">
-                  <div class="flex items-center justify-center gap-2">
-                    <label class="text-white">Working Time:</label>
-                    <input
-                      type="number"
-                      id="work-min"
-                      value="25"
-                      min="1"
-                      class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white"
-                    />
-                    <span class="text-white">min</span>
-                  </div>
-
-                  <div class="text-white font-semibold">Breaks:</div>
-
-                  <div class="flex items-center justify-center gap-2">
-                    <label class="text-white">Short Break:</label>
-                    <input
-                      type="number"
-                      id="short-min"
-                      value="5"
-                      min="1"
-                      class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white"
-                    />
-                    <span class="text-white">min</span>
-                  </div>
-
-                  <div class="flex items-center justify-center gap-2">
-                    <label class="text-white">Long Break:</label>
-                    <input
-                      type="number"
-                      id="long-min"
-                      value="15"
-                      min="1"
-                      class="w-16 px-2 py-1 text-center rounded bg-gray-600 text-white"
-                    />
-                    <span class="text-white">min</span>
-                  </div>
-
-                  <button
-                    onclick="setCustomTimes()"
-                    class="bg-cyan-600 text-white px-4 py-2 rounded"
-                  >
-                    Set Time
-                  </button>
-                </div>
-              </div>
-
-              <div class="timer-circle mb-8">
-                <svg width="200" height="200">
-                  <circle class="bg" r="90" cx="100" cy="100"></circle>
-                  <circle
-                    class="progress"
-                    r="90"
-                    cx="100"
-                    cy="100"
-                    stroke-dasharray="565.48"
+              <div class="timer-circle relative w-48 h-48 mx-auto mb-8">
+                <svg width="200" height="200" class="absolute">
+                  <circle class="bg" r="90" cx="100" cy="100" fill="none" stroke="#ddd" stroke-width="10"></circle>
+                  <circle 
+                    class="progress" 
+                    r="90" 
+                    cx="100" 
+                    cy="100" 
+                    fill="none" 
+                    stroke="#4ade80" 
+                    stroke-width="10"
+                    stroke-dasharray="565.48" 
                     stroke-dashoffset="0"
+                    stroke-linecap="round"
+                    style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s linear;"
                   ></circle>
                 </svg>
-                <div class="timer-time" id="timer">25:00</div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold" id="timer">25:00</div>
               </div>
 
               <div class="flex justify-center gap-4">
                 <button
-                  class="bg-green-600 text-white px-6 py-2 rounded"
+                  class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
                   onclick="startTimer()"
                 >
-                  Start
+                  Start ▶️
                 </button>
                 <button
-                  class="bg-yellow-600 text-white px-6 py-2 rounded"
+                  class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700"
                   onclick="pauseTimer()"
                 >
-                  Pause
+                  Pause ⏸️
                 </button>
                 <button
-                  class="bg-red-600 text-white px-6 py-2 rounded"
+                  class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
                   onclick="resetTimer()"
                 >
-                  Reset
+                  Reset 🔄
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Time Modal -->
+          <div id="edit-time-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+            <div class="bg-white p-6 rounded-lg w-80">
+              <h2 class="text-xl font-bold mb-4">Edit Timer Durations</h2>
+              
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium mb-2">Working Time:</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" id="modal-work-hour" value="0" min="0" class="w-16 p-2 border rounded text-center"> h
+                    <input type="number" id="modal-work-min" value="25" min="0" max="59" class="w-16 p-2 border rounded text-center"> m
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium mb-2">Short Break:</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" id="modal-short-min" value="5" min="1" class="w-16 p-2 border rounded text-center"> min
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium mb-2">Long Break:</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" id="modal-long-min" value="10" min="1" class="w-16 p-2 border rounded text-center"> min
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-2 mt-6">
+                <button id="modal-set-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1">Set Time!</button>
+                <button id="modal-cancel-btn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex-1">Cancel</button>
               </div>
             </div>
           </div>

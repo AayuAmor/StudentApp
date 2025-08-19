@@ -28,8 +28,8 @@ let workDuration = 25 * 60;
 let shortBreak = 5 * 60;
 let longBreak = 15 * 60;
 let current = workDuration;
-let interval = null;
-let isRunning = false;
+let pomodoroInterval = null;
+let isPomodoroRunning = false;
 let session = "Work";
 
 // Pomodoro session statistics
@@ -135,8 +135,9 @@ const DataManager = {
 /**
  * Enhanced navigation system with state persistence and analytics
  * @param {string} sectionName - Target section identifier
+ * @param {Event} e - Event object
  */
-function showSection(sectionName) {
+function showSection(sectionName, e) {
   // Hide all content sections by removing active class
   const sections = document.querySelectorAll(".content-section");
   sections.forEach((section) => section.classList.remove("active"));
@@ -147,7 +148,7 @@ function showSection(sectionName) {
 
   // Show selected section
   document.getElementById(sectionName + "-section").classList.add("active");
-  event.target.classList.add("active");
+  if (e && e.target) e.target.classList.add("active");
 
   // Update global state tracker
   currentSection = sectionName;
@@ -810,7 +811,6 @@ function loadSavedTasks() {
  * Task editing functionality
  */
 let currentEditId = null;
-
 function editTask(id) {
   currentEditId = id;
   const task = tasks[id];
@@ -819,7 +819,7 @@ function editTask(id) {
   document.getElementById("edit-title").value = task.title;
 
   // Convert date back to YYYY-MM-DD format
-  const [weekday, day, month] = task.date.split(" ");
+  const [_, day, month] = task.date.split(" ");
   const months = {
     Jan: "01",
     Feb: "02",
@@ -985,6 +985,49 @@ function updateDisplay() {
   }
   progressCircle.style.stroke = `rgb(${r},${g},${b})`;
 }
+// Pomodoro Timer Variables
+const timerElement = document.getElementById("timer");
+const progressCircle = document.querySelector(".progress");
+const radius = 90; // matches the r value in SVG
+const circumference = 2 * Math.PI * radius;
+
+// Pomodoro Functions
+function updatePomodoroDisplay() {
+  let totalSeconds = current;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // Show hours only if at least 1 hour is set
+  let timeString = "";
+  if (hours > 0) {
+    timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  } else {
+    timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+  timerElement.textContent = timeString;
+
+  const offset = circumference - (current / getSessionDuration()) * circumference;
+  progressCircle.style.strokeDashoffset = offset;
+
+  // Dynamic color: green (start) -> yellow (middle) -> red (end)
+  const percent = current / getSessionDuration();
+  let r, g, b;
+  if (percent > 0.5) {
+    // Green to Yellow
+    const t = (1 - percent) * 2;
+    r = Math.round(0 + (255 - 0) * t);
+    g = 255;
+    b = Math.round(99 - 99 * t);
+  } else {
+    // Yellow to Red
+    const t = 1 - percent * 2;
+    r = 255;
+    g = Math.round(255 - 255 * t);
+    b = 0;
+  }
+  progressCircle.style.stroke = `rgb(${r},${g},${b})`;
+}
 
 function getSessionDuration() {
   if (session === "Work") return workDuration;
@@ -993,16 +1036,12 @@ function getSessionDuration() {
 }
 
 function startTimer() {
-  if (isRunning) return;
-  isRunning = true;
-  interval = setInterval(() => {
+  if (isPomodoroRunning) return;
+  isPomodoroRunning = true;
+  pomodoroInterval = setInterval(() => {
     if (current === 0) {
-      clearInterval(interval);
-      isRunning = false;
-
-      // Track session completion
-      completeSession();
-
+      clearInterval(pomodoroInterval);
+      isPomodoroRunning = false;
       if (session === "Work") {
         session = "Short Break";
         current = shortBreak;
@@ -1012,126 +1051,75 @@ function startTimer() {
         current = workDuration;
         alert("Break over! Back to work.");
       }
-      updateDisplay();
+      updatePomodoroDisplay();
       return;
     }
     current--;
-    updateDisplay();
+    updatePomodoroDisplay();
   }, 1000);
 }
 
 function pauseTimer() {
-  clearInterval(interval);
-  isRunning = false;
-  updateDisplay();
-}
-
-function completeSession() {
-  const today = new Date().toDateString();
-  const sessionDuration =
-    session === "Work"
-      ? workDuration
-      : session === "Short Break"
-      ? shortBreak
-      : longBreak;
-
-  pomodoroStats.completedSessions++;
-
-  if (session === "Work") {
-    pomodoroStats.totalWorkTime += sessionDuration;
-  } else {
-    pomodoroStats.totalBreakTime += sessionDuration;
-  }
-
-  // Update streak
-  if (pomodoroStats.lastSessionDate === today) {
-    // Same day, maintain streak
-  } else if (pomodoroStats.lastSessionDate !== today) {
-    // New day, reset or increment streak
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (pomodoroStats.lastSessionDate === yesterday.toDateString()) {
-      pomodoroStats.streak++;
-    } else {
-      pomodoroStats.streak = 1;
-    }
-  }
-
-  pomodoroStats.lastSessionDate = today;
-
-  // Save updated stats
-  saveAllData();
-
-  console.log(
-    `Session completed! Total sessions: ${pomodoroStats.completedSessions}`
-  );
+  clearInterval(pomodoroInterval);
+  isPomodoroRunning = false;
+  updatePomodoroDisplay();
 }
 
 function resetTimer() {
   pauseTimer();
   session = "Work";
   current = workDuration;
-  updateDisplay();
+  updatePomodoroDisplay();
 }
 
 function toggleEditTime() {
-  const setTimePanel = document.getElementById("set-time-panel");
-  const editTimeBtn = document.getElementById("edit-time-btn");
-
-  if (
-    (setTimePanel && setTimePanel.style.display === "none") ||
-    setTimePanel.style.display === ""
-  ) {
-    setTimePanel.style.display = "flex";
-    editTimeBtn.textContent = "Close";
-    pauseTimer();
-  } else if (setTimePanel) {
-    setTimePanel.style.display = "none";
-    editTimeBtn.textContent = "Edit Time";
-  }
+  // Fill modal with current values
+  document.getElementById('modal-work-hour').value = Math.floor(workDuration / 3600);
+  document.getElementById('modal-work-min').value = Math.floor((workDuration % 3600) / 60);
+  document.getElementById('modal-short-min').value = Math.floor(shortBreak / 60);
+  document.getElementById('modal-long-min').value = Math.floor(longBreak / 60);
+  document.getElementById('edit-time-modal').style.display = 'flex';
 }
 
-function setCustomTimes() {
-  const workInput = document.getElementById("work-min");
-  const shortInput = document.getElementById("short-min");
-  const longInput = document.getElementById("long-min");
-
-  const workVal = parseInt(workInput.value);
-  const shortVal = parseInt(shortInput.value);
-  const longVal = parseInt(longInput.value);
-
-  if (isNaN(workVal) || workVal < 1) {
-    alert("Work time must be a positive number.");
-    workInput.focus();
-    return;
-  }
-  if (isNaN(shortVal) || shortVal < 1) {
-    alert("Short break time must be a positive number.");
-    shortInput.focus();
-    return;
-  }
-  if (isNaN(longVal) || longVal < 1) {
-    alert("Long break time must be a positive number.");
-    longInput.focus();
-    return;
-  }
-
-  workDuration = workVal * 60;
-  shortBreak = shortVal * 60;
-  longBreak = longVal * 60;
-
-  if (session === "Work") current = workDuration;
-  else if (session === "Short Break") current = shortBreak;
-  else current = longBreak;
-
-  updateDisplay();
-
-  const setTimePanel = document.getElementById("set-time-panel");
-  const editTimeBtn = document.getElementById("edit-time-btn");
-  if (setTimePanel) setTimePanel.style.display = "none";
-  if (editTimeBtn) editTimeBtn.textContent = "Edit Time";
-}
+// Modal Set/Cancel handlers
+document.addEventListener('DOMContentLoaded', function() {
+  updatePomodoroDisplay();
+  
+  document.getElementById('modal-set-btn').onclick = function() {
+    const workHour = parseInt(document.getElementById('modal-work-hour').value) || 0;
+    const workMin = parseInt(document.getElementById('modal-work-min').value) || 0;
+    const shortMin = parseInt(document.getElementById('modal-short-min').value) || 1;
+    const longMin = parseInt(document.getElementById('modal-long-min').value) || 1;
+    
+    if (workHour < 0 || workMin < 0 || workMin > 59 || (workHour === 0 && workMin === 0)) {
+      alert('Invalid work time.');
+      return;
+    }
+    if (shortMin < 1 || shortMin > 59) {
+      alert('Invalid short break.');
+      return;
+    }
+    if (longMin < 1 || longMin > 59) {
+      alert('Invalid long break.');
+      return;
+    }
+    
+    workDuration = (workHour * 60 + workMin) * 60;
+    shortBreak = shortMin * 60;
+    longBreak = longMin * 60;
+    
+    if (session === "Work") current = workDuration;
+    else if (session === "Short Break") current = shortBreak;
+    else current = longBreak;
+    
+    updatePomodoroDisplay();
+    document.getElementById('edit-time-modal').style.display = 'none';
+  };
+  
+  document.getElementById('modal-cancel-btn').onclick = function() {
+    document.getElementById('edit-time-modal').style.display = 'none';
+  };
+});
 
 // ===============================
 // NOTES FUNCTIONALITY
