@@ -89,9 +89,8 @@ Visit our [live demo](https://aayuamor.github.io/StudentApp/) - no installation 
 
 ## 👥 Meet Team Doberman
 
-| [<img src="https://avatars.githubusercontent.com/u/198758432?v=4" width="100px" alt="Aayush"/><br/><b>Aayush</b>](https://github.com/AayuAmor) | [<img src="https://avatars.githubusercontent.com/u/169913650?v=4" width="100px" alt="Saffer"/><br/><b>Saffer</b>](https://github.com/SafferStha) | [<img src="https://avatars.githubusercontent.com/u/198090425?v=4" width="100px" alt="Jenish"/><br/><b>Jenish</b>](https://github.com/Jenish995) | [<img src="https://avatars.githubusercontent.com/u/209383606?v=4" width="100px" alt="Prabin"/><br/><b>Prabin</b>](https://github.com/Probeen001) |
+| [<img src="https://avatars.githubusercontent.com/u/198758432?v=4" width="100px" alt="Aayush"/><br/><b>Aayush</b>](https://github.com/AayuAmor)<p>🏗️ Lead Developer & Architecture | [<img src="https://avatars.githubusercontent.com/u/169913650?v=4" width="100px" alt="Saffer"/><br/><b>Saffer</b>](https://github.com/SafferStha)<p>🎨 Frontend, UI/UX & Backend | [<img src="https://avatars.githubusercontent.com/u/198090425?v=4" width="100px" alt="Jenish"/><br/><b>Jenish</b>](https://github.com/Jenish995)<p>💾 Backend & Data Management | [<img src="https://avatars.githubusercontent.com/u/209383606?v=4" width="100px" alt="Prabin"/><br/><b>Prabin</b>](https://github.com/Probeen001)<p>📋 Backend, Testing & Documentation |
 |:---:|:---:|:---:|:---:|
-| 🏗️ Lead Developer & Architecture | 🎨 Frontend, UI/UX & Backend | 💾 Backend & Data Management | 📋 Backend, Testing & Documentation |
 
 ---
 
